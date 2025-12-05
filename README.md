@@ -96,7 +96,6 @@ Eventure는 지역 이벤트 탐색부터 여행 일지 기록까지, 여행의 
 
 ### 🔍 이벤트 탐색
 - 지역 기반 이벤트 검색
-- AI 기반 감성 추천
 - 카테고리별 필터링
 
 ### 🤝 파티원 모집
@@ -223,14 +222,6 @@ eventure/
   - 네이밍: `feature/기능명/담당자`
   - 예시: `feature/event-recommendation/영준`
 
-- **fix**: 버그 수정
-  - 네이밍: `fix/버그내용/담당자`
-  - 예시: `fix/login-error/광혁`
-
-- **design**: UI/UX 작업
-  - 네이밍: `design/페이지명/담당자`
-  - 예시: `design/landing-page/수현`
-
 ### 브랜치 워크플로우
 ```
 1. dev 브랜치에서 작업 브랜치 생성
@@ -256,13 +247,8 @@ eventure/
 | ---------- | ---------------------------------------- |
 | `feat`     | 새로운 기능 추가                         |
 | `fix`      | 버그 수정                                |
-| `docs`     | 문서 수정 (README 등)                    |
 | `design`   | UI/UX 변경 (CSS, 레이아웃)               |
 | `refactor` | 코드 리팩토링 (기능 변경 없음)           |
-| `perf`     | 성능 개선                                |
-| `test`     | 테스트 코드 추가/수정                    |
-| `chore`    | 빌드/패키지 관리, 설정 파일 변경         |
-| `style`    | 코드 포맷팅 (세미콜론, 공백 등)          |
 
 ### 커밋 메시지 형식
 ```
@@ -400,21 +386,6 @@ npm run socket:dev
 
 ---
 
-## 📚 참고 문서
-
-- [Notion 프로젝트 문서](https://notion.so/eventure)
-- [Figma 디자인](https://figma.com/eventure)
-- [Jira 보드](https://jira.com/eventure)
-- [API 명세서](./docs/API.md)
-- [ERD 다이어그램](./docs/ERD.md)
-
----
-
-## 📝 라이선스
-
-This project is private and not open source.
-
----
 
 ## 💡 프로젝트 비전
 
