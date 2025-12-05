@@ -52,8 +52,6 @@ Eventure는 지역 이벤트 탐색부터 여행 일지 기록까지, 여행의 
 
 ## 🚀 기술 스택
 
-## 🚀 기술 스택
-
 ### Frontend
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
 ![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
