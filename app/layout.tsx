@@ -1,3 +1,4 @@
+import Header from '@/components/header/header';
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -19,15 +20,19 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    <html lang="ko" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className="antialiased bg-gray-50">
+        {/* 여기만 추가! */}
+        <Header />
+
+        {/* 기존 children 있던 자리 그대로 두고, 왼쪽 여백만 추가 */}
+        <main className="lg:pl-64 min-h-screen">
+          {children}
+        </main>
       </body>
     </html>
   );
