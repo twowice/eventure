@@ -24,6 +24,7 @@ export type Icon36Name =
   | 'user'
   | 'festival';
 
+
 interface Icon36Props extends React.SVGProps<SVGSVGElement> {
   name: Icon36Name;
 }
