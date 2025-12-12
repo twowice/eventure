@@ -61,7 +61,7 @@ export function ComboboxComponent({
                   width,
                   'justify-between border-[#04152F]/20',
                   className,
-                  'focus:outline-none focus:ring-2 focus:ring-[#007DEF] focus:ring-offset-1',
+                  'focus:outline-none focus:ring-2 focus:ring-[#007DEF] focus:border-transparent transition-all"',
                )}
             >
                {selectedOption?.label || ''}
@@ -81,7 +81,7 @@ export function ComboboxComponent({
                            onSelect={handleSelect}
                            className={cn(
                               currentValue === option.value &&
-                                 'font-semibold bg-[#007DEF]/80 text-[#F1F5FA] focus:outline-none focus:ring-2 focus:ring-[#007DEF] focus:ring-offset-1',
+                                 'font-semibold bg-[#007DEF]/80 text-[#F1F5FA] focus:outline-none focus:ring-2 focus:ring-[#007DEF] focus:border-transparent transition-all"',
                            )}
                         >
                            {option.label}
