@@ -28,8 +28,8 @@ export default function RootLayout({
       <body className="antialiased bg-gray-50">
         {/* 여기만 추가! */}
         <Header />
-        {/* 기존 children 있던 자리 그대로 두고, 왼쪽 여백만 추가 */}
-        <main className="lg:pl-28 min-h-screen">
+        {/* lg:pl-20 값을 변경하면 header와 main영역 사이의 여백을 조절 가능 */}
+        <main className="pl-16 lg:pl-20 min-h-screen">
           {children}
         </main>
       </body>
