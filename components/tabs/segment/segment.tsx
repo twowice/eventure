@@ -1,5 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TabContentsProps } from "@/types/tabContentsProps";
+import { TabContentsProps } from "@/types/ui/tabContentsProps";
 import { cn } from "@/lib/utils";
 
 /**
