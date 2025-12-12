@@ -61,7 +61,7 @@ export const SearchBar = ({
                   onClick={handleClear}
                   className="absolute right-3 p-1 hover:bg-gray-100 rounded-full transition-colors"
                >
-                  <Icon24 name="closeblack" className="h-6 w-6" />
+                  <Icon24 name="closeblack" className="h-6 w-6 cursor-pointer" />
                </button>
             )}
          </div>
