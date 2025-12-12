@@ -4,6 +4,7 @@ import { ComboboxComponent } from '@/components/basic/combo';
 import { RadioComponent } from '@/components/basic/radio';
 import { Icon24 } from '@/components/icons/icon24';
 import { Button } from '@/components/ui/button/button';
+import { SearchBar } from '@/components/ui/searchBar';
 
 export default function Basic() {
    return (
@@ -65,6 +66,7 @@ export default function Basic() {
                버튼
             </Button>
          </div>
+         <SearchBar />
       </>
    );
 }
