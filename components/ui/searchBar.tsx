@@ -1,6 +1,6 @@
-// SearchBar.tsx
 import React, { useState } from 'react';
-import { Search, X } from 'lucide-react';
+import { Icon, Search, X } from 'lucide-react';
+import { Icon24 } from '../icons/icon24';
 
 interface SearchBarProps {
    placeholder?: string;
@@ -10,13 +10,13 @@ interface SearchBarProps {
    className?: string;
 }
 
-export const SearchBar: React.FC<SearchBarProps> = ({
+export const SearchBar = ({
    placeholder = '검색어를 입력하세요',
    onSearch,
    onChange,
    value: controlledValue,
    className = '',
-}) => {
+}: SearchBarProps) => {
    const [internalValue, setInternalValue] = useState('');
    const isControlled = controlledValue !== undefined;
    const value = isControlled ? controlledValue : internalValue;
@@ -46,14 +46,14 @@ export const SearchBar: React.FC<SearchBarProps> = ({
    return (
       <form onSubmit={handleSubmit} className={`relative ${className}`}>
          <div className="relative flex items-center">
-            <Search className="absolute left-3 h-5 w-5 text-gray-400" />
+            <Icon24 name="search" className="absolute left-4 h-6 w-6" />
 
             <input
                type="text"
                value={value}
                onChange={handleChange}
                placeholder={placeholder}
-               className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#007DE4] focus:border-transparent transition-all"
+               className="w-full py-2 pl-12 bg-primary-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-[#007DE4] focus:border-transparent transition-all"
             />
 
             {value && (
@@ -62,7 +62,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                   onClick={handleClear}
                   className="absolute right-3 p-1 hover:bg-gray-100 rounded-full transition-colors"
                >
-                  <X className="h-4 w-4 text-gray-400" />
+                  <Icon24 name="closeblack" className="h-6 w-6" />
                </button>
             )}
          </div>
