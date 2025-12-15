@@ -8,9 +8,9 @@ import { Button } from "../ui/button";
 /**
  * @component
  * @description
- * 사용자가 이미지 파일을 선택하고 미리 볼 수 있게 하며, 선택된 이미지를 외부 서비스로 업로드하는 기능을 제공하는 컨테이너 컴포넌트입니다.
+ * 사용자가 이미지 파일을 선택하고 볼 수 있게 하며, 선택된 이미지를 외부 서비스로 업로드하는 기능을 제공하는 올인원 컨테이너 컴포넌트입니다.
  * 내부적으로 이미지 파일 선택 및 업로드 버튼을 담당하는 `PhotoInput` 컴포넌트와,
- * 업로드된 이미지들의 미리 보기를 표시하는 `Photo` 컴포넌트 목록을 포함합니다.
+ * 업로드된 이미지들을 표시하는 `Photo` 컴포넌트 목록을 포함합니다.
  * 이미지 목록은 가로 스크롤 가능한 형태로 표시되며, 각 `Photo` 및 `PhotoInput` 컴포넌트는 고정된 크기를 가집니다.
  *
  * @param {object} props - PhotoInputContainer 컴포넌트의 속성입니다.
@@ -22,11 +22,13 @@ import { Button } from "../ui/button";
  */
 
 export const PhotoInputContainer = ({
+  initImages = null,
   uploadImage,
 }: {
+  initImages?: string[] | null;
   uploadImage: (file: File) => number;
 }): React.ReactElement => {
-  const [images, setImages] = useState<string[] | null>(null);
+  const [images, setImages] = useState<string[] | null>(initImages);
 
   const PhotoInput = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -54,7 +56,7 @@ export const PhotoInputContainer = ({
         }
       } else {
         alert("오류로 인해 이미지 파일 추가에 실패했습니다.");
-        console.log("[PhotoInput Error] image file is not exist : ", file);
+        console.error("[PhotoInput Error] image file is not exist : ", file);
       }
     };
 
@@ -62,14 +64,19 @@ export const PhotoInputContainer = ({
       fileInputRef.current?.click();
     };
 
+    /**
+     *
+     * @param {number} code uploadeImage 함수에서 받은 HTTP통신 상태 코드
+     * @returns {boolean} 정상 통신일 경우 true를 반환하도록 기본 설계가 되어 있습니다 -> 추후 커스텀 가능
+     */
     const handleUploadError = (code: number) => {
       switch (code) {
         case 200:
           return true;
         case 400:
-          return Error("Bad Request");
+          throw Error("Bad Request");
         default:
-          return Error("Unknown");
+          throw Error("Unknown");
       }
     };
 
@@ -110,7 +117,16 @@ export const PhotoInputContainer = ({
   };
 
   return (
-    <div className={cn("flex flex-row", "overflow-x-scroll", "h-28", "gap-2")}>
+    <div
+      className={cn(
+        "flex flex-row",
+        "w-min-100",
+        "overflow-x-scroll",
+        "h-28",
+        "gap-2",
+        "justify-start"
+      )}
+    >
       <PhotoInput />
       {images !== null &&
         images?.map((image, idx) => <Photo key={idx} image={image}></Photo>)}
