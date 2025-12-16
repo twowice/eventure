@@ -29,7 +29,7 @@ export default function MapScriptLoader() {
       {!isMapScriptLoaded && (
         <Script
           id="naver-map-sdk"
-          strategy="afterInteractive"
+          strategy="beforeInteractive"
           type="text/javascript"
           src={`https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${process.env.NEXT_PUBLIC_NCP_CLIENT_ID}`}
           onReady={handleScriptReady}

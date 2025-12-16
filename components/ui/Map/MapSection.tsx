@@ -27,12 +27,13 @@ const MapSection = () => {
       fetchWeather(lat, lng);
       fetchAirQuality(lat, lng);
     },
-    [fetchWeather, fetchAirQuality]
+    [fetchWeather, fetchAirQuality] // fetchWeather, fetchAirQuality가 변경될 때마다 함수 재생성 (안정적)
   );
   const isListenerAddedRef = useRef(false);
 
   useEffect(() => {
     if (!map || !isMapScriptLoaded) {
+      // ⭐️ isListenerAddedRef.current 체크는 이펙트 내에서만
       console.log("[MapSection UI] 지도 인스턴스 또는 스크립트 로드 대기 중.");
       return;
     }
@@ -59,7 +60,7 @@ const MapSection = () => {
         Math.abs(currentPosition.lat - newLat) > 0.0001 ||
         Math.abs(currentPosition.lng - newLng) > 0.0001
       ) {
-        fetchMapData(newLat, newLng);
+        fetchMapData(newLat, newLng); // ⭐️ 3. 지도 이동 조건 충족 시 fetchMapData 호출
       } else {
         console.log("[MapSection UI] 지도 위치 변화 미미. API 호출 건너뜀.");
       }
@@ -67,12 +68,13 @@ const MapSection = () => {
 
     return () => {
       console.log("[MapSection UI] Cleanup: 리스너 제거 및 플래그 초기화.");
+      // listener가 존재하고 유효한 경우에만 제거 (간혹 null일 수 있는 경우 방어)
       if (listener && naver.maps.Event.removeListener) {
         naver.maps.Event.removeListener(listener);
       }
       isListenerAddedRef.current = false;
     };
-  }, [map, isMapScriptLoaded, currentPosition, fetchMapData]);
+  }, [map, isMapScriptLoaded, currentPosition, fetchMapData]); // ⭐️ 의존성 배열에 fetchMapData 추가
 
   const handleWeatherClick = () => {
     if (showWeeklyModal) {

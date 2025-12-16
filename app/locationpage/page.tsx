@@ -33,7 +33,7 @@ export default function MyPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-6 bg-gray-50 min-h-screen gap-4">
+    <div className="flex flex-col items-center justify-center p-6 bg-gray-50 min-h-screen w-100 gap-4">
       <EllipsisPagination
         currentPage={page}
         totalPages={totalPages}
