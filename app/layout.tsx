@@ -36,8 +36,10 @@ export default function RootLayout({
           {path !== "/" && (
             <div
               className={cn(
-                path.startsWith(mainmenu[0].href) ? "w-full" : "w-100",
-                "relative z-30 overflow-auto"
+                path.startsWith(mainmenu[0].href)
+                  ? "w-full"
+                  : "w-[400px] ms:w-full",
+                "relative z-30 overflow-auto shrink-0"
               )}
             >
               {children}
@@ -45,7 +47,7 @@ export default function RootLayout({
           )}
           {!path.startsWith(mainmenu[0].href) && <MapCanvas />}
           {!path.startsWith(mainmenu[0].href) && (
-            <div className="ms-100 absolute inset-0 z-10 w-full h-full pointer-events-none">
+            <div className="ms-100 lg:ms-100 absolute inset-0 z-10 w-full h-full pointer-events-none">
               <MapSection />
             </div>
           )}
