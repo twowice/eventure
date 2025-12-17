@@ -1,7 +1,9 @@
 import { Icon24 } from '@/components/icons/icon24';
 import { BadgeComponent } from './badge';
-import { Notice } from '@/app/morepage/page';
 import { useRouter } from 'next/navigation';
+import { EllipsisPagination } from '@/components/pagination/pagination';
+import { Notice, NoticeType } from '@/types/more/notice';
+import { useMemo, useState } from 'react';
 
 type NoticeProps = {
    notice: Notice;
@@ -43,3 +45,58 @@ export function TopFixedlNotice({ notice }: NoticeProps) {
       </div>
    );
 }
+
+export const NoticeList = ({ data, filterType }: { data: Notice[]; filterType: 'all' | NoticeType }) => {
+   const [currentPage, setCurrentPage] = useState(1);
+   const itemsPerPage = 18;
+
+   // 1. 먼저 필터링을 수행합니다.
+   const filteredNotices = useMemo(() => {
+      if (filterType === 'all') return data;
+      return data.filter(notice => notice.type === filterType);
+   }, [data, filterType]);
+
+   // 2. 필터링된 데이터를 기반으로 페이지네이션 계산
+   const totalPages = Math.ceil(filteredNotices.length / itemsPerPage);
+
+   const pagedNotices = useMemo(() => {
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      return filteredNotices.slice(start, end);
+   }, [currentPage, filteredNotices]);
+
+   const handlePageChange = (page: number) => {
+      setCurrentPage(page);
+   };
+
+   return (
+      <div className="flex flex-col min-h-0 h-[calc(100vh-300px)]">
+         {/* flex-1: 남은 공간을 모두 차지 (리스트가 짧아도 공간을 확보하여 페이지네이션을 아래로 밈)
+         overflow-y-auto: 리스트가 길어지면 이 영역 내부에서만 스크롤 발생
+      */}
+         <div className="flex-1 overflow-y-auto min-h-0">
+            {pagedNotices.length > 0 ? (
+               pagedNotices.map(notice =>
+                  notice.isTopFixed ? (
+                     <TopFixedlNotice key={notice.id} notice={notice} />
+                  ) : (
+                     <NormalNotice key={notice.id} notice={notice} />
+                  ),
+               )
+            ) : (
+               <div className="flex items-center justify-center h-full text-gray-400">등록된 공지사항이 없습니다.</div>
+            )}
+         </div>
+
+         <div className="flex items-center justify-center shrink-0 h-14">
+            {totalPages > 0 && (
+               <EllipsisPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  handlePageChange={handlePageChange}
+               />
+            )}
+         </div>
+      </div>
+   );
+};
