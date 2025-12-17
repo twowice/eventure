@@ -1,5 +1,5 @@
-import { NoticeType } from '@/app/morepage/page';
 import { Badge } from '@/components/ui/badge';
+import { NoticeType } from '@/types/more/notice';
 
 type Notices = {
    type: NoticeType;

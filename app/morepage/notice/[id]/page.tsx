@@ -1,11 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import MoreContent, { allNotices } from '../../page';
+import MoreContent from '../../page';
 import { Button } from '@/components/ui/button';
 import { Icon24 } from '@/components/icons/icon24';
 import { NormalNoticeDetail } from '@/feature/more/noticeList';
 import { use } from 'react';
+import { allNotices } from '@/dummy/more';
 
 export default function NoticeDetail({ params }: { params: Promise<{ id: string }> }) {
    const router = useRouter();
