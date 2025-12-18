@@ -9,18 +9,45 @@ import "./globals.css";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { mainmenu } from "@/components/header/headermenu";
+import { panelstore } from "@/stores/panelstore";
+import { useMemo } from "react";
+import AuthSessionProvider from "@/components/providers/sessionprovider";
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const path = usePathname();
+  const { openpanel } = panelstore();
+
+  // 전체 너비가 필요한 페이지들
+  const fullwidthpages = ['/loginpage', '/signup', '/admin'];
+  const isfullwidth = fullwidthpages.some(page => path.startsWith(page));
+
   //관리자 주소를 입력해주세요
   if (path.startsWith("/admin")) {
     return (
       <html lang="ko">
         <body>
-          <div className="flex min-h-screen justify-start">{children}</div>
+          <AuthSessionProvider>
+            <div className="flex min-h-screen justify-start">{children}</div>
+          </AuthSessionProvider>
+        </body>
+      </html>
+    );
+  }
+
+  // 로그인/회원가입 페이지는 Header 없이 전체 화면
+  if (path.startsWith("/loginpage") || path.startsWith("/signup")) {
+    return (
+      <html lang="ko">
+        <body>
+          <AuthSessionProvider>
+            <main className="w-full h-screen">
+              {children}
+            </main>
+          </AuthSessionProvider>
         </body>
       </html>
     );
@@ -29,39 +56,33 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <MapScriptLoader />
-        <Header />
-        <main className="grow flex flex-row min-h-screen relative overflow-hidden ms-16 lg:ms-20 h-full">
-          {/**지도 필요하시지 않으신 경우 해당 페이지에서 전체 페이지 크기를 w-screen으로 설정해주세요*/}
-          {path !== "/" && (
-            <div
-              className={cn(
-                path.startsWith(mainmenu[0].href)
-                  ? "w-full"
-                  : "lg:w-[500px] sm:grow min-w-[400px]",
-                "relative z-30 overflow-auto shrink-0"
-              )}
-            >
-              {children}
-            </div>
-          )}
-           {/* {(
-            <div
-              className={cn(
-                path === "/" ? "w-full" : "w-0",
-                "relative z-30 overflow-auto shrink-0"
-              )}
-            >
-              {children}
-            </div> 
-           )} */}
-          {!path.startsWith(mainmenu[0].href) && <MapCanvas />}
-          {!path.startsWith(mainmenu[0].href) && (
-            <div className="ms-100 lg:ms-125 absolute inset-0 z-10 w-full h-full pointer-events-none">
-              <MapSection />
-            </div>
-          )}
-        </main>
+        <AuthSessionProvider>
+          <MapScriptLoader />
+          <Header />
+          <main className="grow flex flex-row min-h-screen relative overflow-hidden ms-16 lg:ms-20 h-full">
+            {path !== "/" && (
+              <div
+                className={cn(
+                  path.startsWith(mainmenu[0].href) ? "w-full" : "w-0",
+                  "relative z-30 overflow-auto shrink-0"
+                )}
+              >
+                {children}
+              </div>
+            )}
+            {!path.startsWith(mainmenu[0].href) && <MapCanvas />}
+            {!path.startsWith(mainmenu[0].href) && (
+              <div
+                className={cn(
+                  openpanel === null ? "ms-0" : "ms-100 lg:ms-150 md:ms-150",
+                  "absolute inset-0 z-10 w-full h-full pointer-events-none"
+                )}
+              >
+                <MapSection />
+              </div>
+            )}
+          </main>
+        </AuthSessionProvider>
       </body>
     </html>
   );
