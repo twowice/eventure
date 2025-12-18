@@ -51,7 +51,8 @@ export default function SocialLoginButton({ provider, label }: SocialLoginButton
   
   const handleLogin = async () => {
     try {
-      await signIn(provider, { callbackUrl: '/' })
+      // ✅ 여기만 수정! '/' → '/loginpage/callback'
+      await signIn(provider, { callbackUrl: '/loginpage/callback' })
     } catch (error) {
       console.error('Login failed:', error)
     }
