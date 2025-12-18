@@ -9,12 +9,16 @@ import "./globals.css";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { mainmenu } from "@/components/header/headermenu";
+import { panelstore } from "@/stores/panelstore";
+import { useMemo } from "react";
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const path = usePathname();
+  const { openpanel } = panelstore();
+
   //관리자 주소를 입력해주세요
   if (path.startsWith("/admin")) {
     return (
@@ -32,7 +36,6 @@ export default function RootLayout({
         <MapScriptLoader />
         <Header />
         <main className="grow flex flex-row min-h-screen relative overflow-hidden ms-16 lg:ms-20 h-full">
-          {/**지도 필요하시지 않으신 경우 해당 페이지에서 전체 페이지 크기를 w-screen으로 설정해주세요*/}
           {path !== "/" && (
             <div
               className={cn(
@@ -47,7 +50,7 @@ export default function RootLayout({
           {!path.startsWith(mainmenu[0].href) && (
             <div
               className={cn(
-                path === "/" ? "" : "ms-100 lg:ms-150 md:ms-150",
+                openpanel === null ? "ms-0" : "ms-100 lg:ms-150 md:ms-150",
                 "absolute inset-0 z-10 w-full h-full pointer-events-none"
               )}
             >
