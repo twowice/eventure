@@ -45,6 +45,16 @@ export default function RootLayout({
               {children}
             </div>
           )}
+           {/* {(
+            <div
+              className={cn(
+                path === "/" ? "w-full" : "w-0",
+                "relative z-30 overflow-auto shrink-0"
+              )}
+            >
+              {children}
+            </div> 
+           )} */}
           {!path.startsWith(mainmenu[0].href) && <MapCanvas />}
           {!path.startsWith(mainmenu[0].href) && (
             <div className="ms-100 lg:ms-125 absolute inset-0 z-10 w-full h-full pointer-events-none">

@@ -15,6 +15,7 @@ export default function Home() {
       <Icon24 name="sharedef" />
       <Icon24 name="pinned" />
       <Icon24 name="likedef" />
+      <Icon24 name="likefill" className='text-red-500' />
       <Icon24 name="minus" />
       <Icon24 name="plus" />
       <Icon24 name="drag" />
