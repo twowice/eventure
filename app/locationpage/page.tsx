@@ -1,5 +1,6 @@
 "use client";
 
+import LocationPanel from "@/components/header/panels/locationpanel";
 import { Button } from "@/components/ui/button";
 import { RouteSearchBar } from "@/feature/location/RouteSearchBar";
 import { RouteSearchHistoryItem } from "@/feature/location/RouteSearchHistory";
@@ -29,11 +30,6 @@ export default function Location() {
 
     setIsDuringSearching(true);
     try {
-      const directionsApiUrl = new URL(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/map/direction`,
-        window.location.origin
-      );
-
       const startPlace = places.find((p) => p.order === 1);
       const endPlace = places.find((p) => p.order === places.length);
 
@@ -42,24 +38,12 @@ export default function Location() {
         return;
       }
 
-      directionsApiUrl.searchParams.append(
-        "start",
-        `${startPlace.lng},${startPlace.lat}`
-      );
-      directionsApiUrl.searchParams.append(
-        "goal",
-        `${endPlace.lng},${endPlace.lat}`
+      const transpathUrl = new URL(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/map/odsay/transpath?sx=${startPlace.lng}&sy=${startPlace.lat}&ex=${endPlace.lng}&ey=${endPlace.lat}`,
+        window.location.origin
       );
 
-      const waypoints = places
-        .filter((p) => p.order > 1 && p.order < places.length)
-        .map((p) => `${p.lng},${p.lat}`)
-        .join("|");
-      if (waypoints) {
-        directionsApiUrl.searchParams.append("waypoints", waypoints);
-      }
-
-      const response = await fetch(directionsApiUrl.toString());
+      const response = await fetch(transpathUrl.toString());
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
@@ -81,34 +65,36 @@ export default function Location() {
   };
 
   return (
-    <div className="bg-white p-4 w-full flex flex-col gap-6">
-      <p className="text-[32px]">안녕하세요, 00님</p>
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-row justify-between">
-          <h1 className="text-[24px] font-semibold">길찾기</h1>
-          <Button
-            disabled={isDuringSearching || places.length < 2}
-            onClick={search}
-          >
-            길찾기 {isDuringSearching ? "중..." : ""}
-          </Button>
+    <LocationPanel>
+      <div className="bg-white p-4 w-full flex flex-col gap-6">
+        <p className="text-[32px]">안녕하세요, 00님</p>
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-row justify-between">
+            <h1 className="text-[24px] font-semibold">길찾기</h1>
+            <Button
+              disabled={isDuringSearching || places.length < 2}
+              onClick={search}
+            >
+              길찾기 {isDuringSearching ? "중..." : ""}
+            </Button>
+          </div>
+          <RouteSearchBar order={1} total={2} />
+          <RouteSearchBar order={2} total={2} />
         </div>
-        <RouteSearchBar order={1} total={2} />
-        <RouteSearchBar order={2} total={2} />
-      </div>
 
-      <div className="flex gap-0 flex-col">
-        <RouteSearchHistoryItem
-          order={1}
-          departure="해운대 해수욕장"
-          destination="벡스코"
-        />
-        <RouteSearchHistoryItem
-          order={2}
-          departure="해운대 해수욕장"
-          destination="벡스코"
-        />
+        <div className="flex gap-0 flex-col">
+          <RouteSearchHistoryItem
+            order={1}
+            departure="해운대 해수욕장"
+            destination="벡스코"
+          />
+          <RouteSearchHistoryItem
+            order={2}
+            departure="해운대 해수욕장"
+            destination="벡스코"
+          />
+        </div>
       </div>
-    </div>
+    </LocationPanel>
   );
 }
