@@ -11,8 +11,8 @@ interface PlaceResult {
     link?: string;
 }
 
-const NAVER_CLIENT_ID = process.env.NAVER_CLIENT_ID;
-const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET;
+const NAVER_CLIENT_ID = process.env.NAVER_CLIENT_SEARCH_ID;
+const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SEARCH_SECRET;
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
