@@ -14,7 +14,7 @@ export default function LocationPanel({
     <SlidePanel
       isopen={openpanel === "location"}
       onclose={() => setopenpanel(null)}
-      title="길찾기"
+      title="안녕하세요, 000님"
     >
       {children}
     </SlidePanel>
