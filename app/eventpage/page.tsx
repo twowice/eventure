@@ -17,6 +17,8 @@ interface EventItem {
     endDate: string;
     region: string;
     imageUrl: string;
+    event_images: string;
+    etcImgUrl: string;
 }
 
 export default function Page() {
@@ -53,7 +55,7 @@ export default function Page() {
 
         try {
              const res = await fetch(
-                `/api/events?limit=100&offset=${currentOffset}` +
+                `/api/events?limit=12&offset=${currentOffset}` +
                 `&category=${encodeURIComponent(category)}` +
                 `&region=${encodeURIComponent(region)}` +
                 `&month=${encodeURIComponent(month)}` +
@@ -81,6 +83,7 @@ export default function Page() {
                             ? `${addressRegion[0]} ${addressRegion[1]}`
                             : addressRegion[0] ?? "", // 주소(XX시 XX구)
                     imageUrl: item.main_image ?? "/error/no-image.svg", // 메인 이미지
+                    etcImgUrl: item.event_images,
                 };
             });
 
@@ -183,11 +186,12 @@ export default function Page() {
                                     className="block cursor-pointer">
                                     <EventCard
                                         id={item.id}
+                                        region={item.region}
                                         title={item.title}
                                         startDate={item.startDate}
                                         endDate={item.endDate}
-                                        region={item.region}
                                         imageUrl={item.imageUrl}
+                                        etcImgUrl={item.etcImgUrl}
                                     />
                                 </Link>
                             ))}

@@ -4,11 +4,11 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { auth } from '@/lib/auth'
 
-
-export async function POST(req: NextRequest, context: any) {
+export async function GET(req: NextRequest, context: any) {
     try {
-        const params = await context.params;  // <- await로 풀어줘야 함
+        const params = await context.params;
         const eventId = Number(params.id);
 
         if(!eventId) return NextResponse.json({ message: "Invalid event id" }, { status: 400 });
@@ -16,9 +16,49 @@ export async function POST(req: NextRequest, context: any) {
         /* ===========================
             Login Check
         =========================== */
-        // const userId = req.headers.get("x-user-id");
-        // if(userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        const userId = "f6f8dbcf-9d61-4674-950d-50210b318947";
+        const session = await auth()
+         if (!session) {
+            return NextResponse.json({ message: "❌ Session error" }, { status: 401 });
+        }
+        const userId = session?.user.id;
+
+        /* ===========================
+            Like SELECT
+        =========================== */
+        const { data: liked, error } = await supabase
+            .from("liked_events")
+            .select("id")
+            .eq("event_id", eventId)
+            .eq("user_id", userId)
+            .single();
+
+        if (error && error.code !== "PGRST116") {
+            console.error("Like Check Error:", error);
+            return NextResponse.json({ message: "Like check error" }, { status: 500 });
+        }
+
+        return NextResponse.json({ liked: !!liked }); // row가 있으면 true 없으면 false
+
+
+    }catch(e) { console.error(e); return NextResponse.json( { message: "Like API Error" }, { status: 500 } )}
+}
+
+export async function POST(req: NextRequest, context: any) {
+    try {
+        const params = await context.params;
+        const eventId = Number(params.id);
+
+        if(!eventId) return NextResponse.json({ message: "Invalid event id" }, { status: 400 });
+
+        /* ===========================
+            Login Check
+        =========================== */
+        const session = await auth()
+         if (!session) {
+            return NextResponse.json({ message: "❌ Session error" }, { status: 401 });
+        }
+        const userId = session?.user.id;
+
         
         /* ===========================
             Like Check
