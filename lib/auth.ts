@@ -62,7 +62,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      // 소셜 로그인 시 트리거가 public.users 자동 생성 → 여기서 추가 insert 필요 없음
+      if (account?.provider !== 'credentials') {
+        // 소셜 로그인
+        const { data: existing } = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', user.email)
+          .single()
+
+        if (!existing && user.email) {
+          await supabase.from('users').insert({
+            email: user.email,
+            name: user.name || user.email.split('@')[0],
+            image_url: user.image,
+            provider: account?.provider,
+            is_profile_complete: false,
+          })
+        }
+      }
       return true
     },
     async jwt({ token, user }) {
