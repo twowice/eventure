@@ -46,32 +46,12 @@ export function TopFixedlNotice({ notice }: NoticeProps) {
    );
 }
 
-export const NoticeList = ({ data, filterType }: { data: Notice[]; filterType: 'all' | NoticeType }) => {
-   const [currentPage, setCurrentPage] = useState(1);
-   const itemsPerPage = 16;
-
-   const filteredNotices = useMemo(() => {
-      if (filterType === 'all') return data;
-      return data.filter(notice => notice.type === filterType);
-   }, [data, filterType]);
-
-   const totalPages = Math.ceil(filteredNotices.length / itemsPerPage);
-
-   const pagedNotices = useMemo(() => {
-      const start = (currentPage - 1) * itemsPerPage;
-      const end = start + itemsPerPage;
-      return filteredNotices.slice(start, end);
-   }, [currentPage, filteredNotices]);
-
-   const handlePageChange = (page: number) => {
-      setCurrentPage(page);
-   };
-
+export const NoticeList = ({ data }: { data: Notice[] }) => {
    return (
-      <div className="flex flex-col h-full min-h-0 gap-3">
+      <div className="flex flex-col h-full min-h-0">
          <div className="flex-1 overflow-y-auto min-h-0">
-            {pagedNotices.length > 0 ? (
-               pagedNotices.map(notice =>
+            {data.length > 0 ? (
+               data.map(notice =>
                   notice.isTopFixed ? (
                      <TopFixedlNotice key={notice.id} notice={notice} />
                   ) : (
@@ -80,17 +60,6 @@ export const NoticeList = ({ data, filterType }: { data: Notice[]; filterType: '
                )
             ) : (
                <div className="flex items-center justify-center h-full text-gray-400">등록된 공지사항이 없습니다.</div>
-            )}
-         </div>
-
-         {/* pagination 영역 - 항상 동일한 높이 유지 */}
-         <div className="flex items-center justify-center shrink-0 h-14">
-            {totalPages > 0 && (
-               <EllipsisPagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  handlePageChange={handlePageChange}
-               />
             )}
          </div>
       </div>
