@@ -23,7 +23,7 @@ export function TableComponent<T extends Record<string, any>>({
    data = [],
    className,
    emptyMessage = '데이터가 없습니다.',
-   itemsPerPage = 12,
+   itemsPerPage = 11,
 }: TableProps<T>) {
    const containerRef = useRef<HTMLDivElement>(null);
    const [rowHeight, setRowHeight] = useState('60px');
@@ -32,7 +32,7 @@ export function TableComponent<T extends Record<string, any>>({
       if (containerRef.current) {
          const updateHeight = () => {
             const containerHeight = containerRef.current?.clientHeight || 0;
-            const headerHeight = 48; // h-12 = 48px
+            const headerHeight = 48;
             const availableHeight = containerHeight - headerHeight;
             const calculatedHeight = availableHeight / itemsPerPage;
             setRowHeight(`${calculatedHeight}px`);
@@ -53,12 +53,8 @@ export function TableComponent<T extends Record<string, any>>({
       );
    }
 
-   // 항상 itemsPerPage만큼 행을 표시 (빈 행으로 채우기)
-   const emptyRowsCount = Math.max(0, itemsPerPage - data.length);
-   const emptyRows = Array.from({ length: emptyRowsCount });
-
    return (
-      <div ref={containerRef} className="w-full h-full border rounded-lg overflow-hidden bg-background">
+      <div ref={containerRef} className="w-full border rounded-lg overflow-hidden bg-background">
          <Table className={`table-fixed w-full ${className || ''}`}>
             <colgroup>
                {columns.map((column, index) => (
@@ -113,17 +109,6 @@ export function TableComponent<T extends Record<string, any>>({
                                  `}
                               >
                                  {column.render ? column.render(row[column.key], row) : String(row[column.key] ?? '-')}
-                              </TableCell>
-                           ))}
-                        </TableRow>
-                     ))}
-
-                     {/* 빈 행으로 채우기 */}
-                     {emptyRows.map((_, index) => (
-                        <TableRow key={`empty-${index}`} style={{ height: rowHeight }} className="pointer-events-none">
-                           {columns.map(column => (
-                              <TableCell key={String(column.key)} className="text-center align-middle">
-                                 {/* 빈 셀 */}
                               </TableCell>
                            ))}
                         </TableRow>

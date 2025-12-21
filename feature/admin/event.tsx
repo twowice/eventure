@@ -5,151 +5,83 @@ import { Button } from '@/components/ui/button/button';
 import { SearchBar } from '@/components/ui/searchBar';
 import { TableComponent } from './table';
 import { EllipsisPagination } from '@/components/pagination/pagination';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AddEvent } from './addEventDialog';
-
-interface TableData {
-   name: string;
-   host: string;
-   period: string;
-   operating_hours: string;
-   price: string;
-   location: string;
-   state: string;
-}
-
-const allEvents: TableData[] = [
-   {
-      name: '봄맞이 꽃 축제',
-      host: '서울시',
-      period: '2025-03-01 ~ 2025-03-31',
-      operating_hours: '09:00 ~ 18:00',
-      price: '무료',
-      location: '여의도 공원',
-      state: '진행중',
-   },
-   {
-      name: '여름 음악 페스티벌',
-      host: '문화재단',
-      period: '2025-07-15 ~ 2025-07-17',
-      operating_hours: '14:00 ~ 22:00',
-      price: '50,000원',
-      location: '올림픽공원',
-      state: '예정',
-   },
-   {
-      name: '가을 푸드 트럭 축제',
-      host: '강남구청',
-      period: '2025-09-10 ~ 2025-09-12',
-      operating_hours: '11:00 ~ 20:00',
-      price: '무료',
-      location: '코엑스 광장',
-      state: '예정',
-   },
-   {
-      name: '겨울 빛 축제',
-      host: '관광공사',
-      period: '2024-12-01 ~ 2024-12-31',
-      operating_hours: '17:00 ~ 23:00',
-      price: '15,000원',
-      location: '청계천',
-      state: '종료',
-   },
-   {
-      name: '크리스마스 마켓',
-      host: '명동상인회',
-      period: '2024-12-15 ~ 2024-12-25',
-      operating_hours: '10:00 ~ 22:00',
-      price: '무료',
-      location: '명동 거리',
-      state: '취소',
-   },
-   {
-      name: '한강 불꽃축제',
-      host: '서울시',
-      period: '2025-10-05 ~ 2025-10-05',
-      operating_hours: '19:00 ~ 21:00',
-      price: '무료',
-      location: '여의도 한강공원',
-      state: '예정',
-   },
-   {
-      name: '서울 재즈 페스티벌',
-      host: '문화재단',
-      period: '2025-05-20 ~ 2025-05-22',
-      operating_hours: '16:00 ~ 22:00',
-      price: '80,000원',
-      location: '올림픽공원',
-      state: '예정',
-   },
-   {
-      name: '서울 국제 영화제',
-      host: '영화진흥위원회',
-      period: '2025-10-01 ~ 2025-10-10',
-      operating_hours: '10:00 ~ 22:00',
-      price: '12,000원',
-      location: '광화문 시네마',
-      state: '예정',
-   },
-   {
-      name: '강남 페스티벌',
-      host: '강남구청',
-      period: '2025-08-15 ~ 2025-08-17',
-      operating_hours: '12:00 ~ 21:00',
-      price: '무료',
-      location: '강남역 광장',
-      state: '예정',
-   },
-   {
-      name: '한강 마라톤 대회',
-      host: '마라톤협회',
-      period: '2025-04-20 ~ 2025-04-20',
-      operating_hours: '06:00 ~ 12:00',
-      price: '30,000원',
-      location: '반포 한강공원',
-      state: '예정',
-   },
-   {
-      name: '서울 빛초롱 축제',
-      host: '종로구청',
-      period: '2025-11-01 ~ 2025-11-30',
-      operating_hours: '18:00 ~ 23:00',
-      price: '무료',
-      location: '청계천 일대',
-      state: '예정',
-   },
-   {
-      name: '전통주 페스티벌',
-      host: '농림축산식품부',
-      period: '2025-09-25 ~ 2025-09-27',
-      operating_hours: '13:00 ~ 20:00',
-      price: '20,000원',
-      location: 'DDP',
-      state: '예정',
-   },
-];
+import { allEvents } from '@/dummy/admin';
+import { EventData } from '@/types/userReport';
+import { Input } from '@/components/ui/input';
 
 export default function Event() {
    const [currentPage, setCurrentPage] = useState(1);
-   const itemsPerPage = 12;
+   const [statusFilter, setStatusFilter] = useState('all');
+   const [sortFilter, setSortFilter] = useState('name');
+   const [searchText, setSearchText] = useState('');
+   const [startDate, setStartDate] = useState('');
+   const [endDate, setEndDate] = useState('');
+
+   useEffect(() => {
+      setCurrentPage(1);
+   }, [statusFilter, sortFilter, searchText, startDate, endDate]);
+
+   const filterData = useMemo(() => {
+      return (
+         allEvents
+            //상태
+            .filter(event => (statusFilter === 'all' ? true : event.state === statusFilter))
+            //검색어 + 분류
+            .filter(event => {
+               if (!searchText) return true;
+               const field = sortFilter as keyof EventData;
+               return String(event[field]).toLowerCase().includes(searchText.toLowerCase());
+            })
+            // 기간
+            .filter(event => {
+               if (!startDate && !endDate) return true;
+               const [start, end] = event.period.split('~').map(v => v.trim());
+               const eventStart = new Date(start);
+               const eventEnd = new Date(end || start);
+               const filterStart = startDate ? new Date(startDate) : null;
+               const filterEnd = endDate ? new Date(endDate) : null;
+
+               if (filterStart && filterEnd) {
+                  return eventEnd >= filterStart && eventStart <= filterEnd;
+               }
+
+               if (filterStart) return eventEnd >= filterStart;
+               if (filterEnd) return eventStart <= filterEnd;
+               return true;
+            })
+      );
+   }, [statusFilter, sortFilter, searchText, startDate, endDate]);
+   const itemsPerPage = 11;
    const totalPages = useMemo(() => {
-      return Math.ceil(allEvents.length / itemsPerPage);
-   }, [itemsPerPage]);
+      return Math.ceil(filterData.length / itemsPerPage);
+   }, [filterData.length]);
 
    const currentData = useMemo(() => {
       const startIndex = (currentPage - 1) * itemsPerPage;
       const endIndex = startIndex + itemsPerPage;
-      return allEvents.slice(startIndex, endIndex);
-   }, [currentPage, itemsPerPage]);
+      return filterData.slice(startIndex, endIndex);
+   }, [currentPage, filterData]);
 
    const handlePageChange = (page: number) => {
       setCurrentPage(page);
    };
 
+   const handleSearch = () => setCurrentPage(1);
+   const handleReset = () => {
+      setStatusFilter('all');
+      setSortFilter('name');
+      setSearchText('');
+      setStartDate('');
+      setEndDate('');
+      setCurrentPage(1);
+   };
+
    return (
-      <div className="flex w-full h-full flex-col gap-6">
-         <div>이벤트 관리</div>
-         <div className="flex flex-col gap-6 h-full">
+      <div className="flex  w-full h-full flex-col">
+         <div className="flex flex-1 gap-6 flex-col">
+            <div>이벤트 관리</div>
             <div className="flex flex-col w-full gap-5">
                <div className="flex justify-end">
                   <AddEvent />
@@ -161,17 +93,35 @@ export default function Event() {
                         <ComboboxComponent
                            options={[
                               { value: 'all', label: '전체' },
-                              { value: 'progress', label: '진행 중' },
-                              { value: 'non_progress', label: '미진행' },
-                              { value: 'previous_reservation', label: '예약접수' },
-                              { value: 'cancel', label: '취소' },
-                              { value: 'end', label: '종료' },
+                              { value: '진행중', label: '진행중' },
+                              { value: '예정', label: '예정' },
+                              { value: '예약접수', label: '예약접수' },
+                              { value: '취소', label: '취소' },
+                              { value: '종료', label: '종료' },
                            ]}
                            className="w-full"
+                           value={statusFilter}
+                           onValueChange={setStatusFilter}
                         />
                      </div>
-                     <div className="w-16">기간</div>
-                     <div className="flex-1 h-full border"></div>
+                     <div className="flex gap-4 text-base font-normal items-center">
+                        <div className="w-16">기간</div>
+                        <div className="text-sm text-foreground/50 font-semibold">시작일</div>
+                        <Input
+                           type="date"
+                           className="h-10 w-50"
+                           value={startDate}
+                           onChange={e => setStartDate(e.target.value)}
+                        />
+                        <div className="text-sm text-foreground/50 font-semibold">종료일</div>
+
+                        <Input
+                           type="date"
+                           className="h-10 w-50"
+                           value={endDate}
+                           onChange={e => setEndDate(e.target.value)}
+                        />
+                     </div>
                   </div>
                   <div className="flex gap-4 text-base font-normal items-center">
                      <div className="w-16">분류</div>
@@ -187,25 +137,27 @@ export default function Event() {
                               { value: 'state', label: '이벤트 상태' },
                            ]}
                            className="w-full"
+                           value={sortFilter}
+                           onValueChange={setSortFilter}
                         />
                      </div>
                      <div className="w-16">검색</div>
                      <div className="flex-1">
-                        <SearchBar />
+                        <SearchBar value={searchText} onChange={setSearchText} onEnter={handleSearch} />
                      </div>
                   </div>
                   <div className="flex justify-end gap-4">
-                     <Button variant={'secondary'} size={'lg'}>
+                     <Button variant={'secondary'} size={'lg'} onClick={handleReset}>
                         초기화
                      </Button>
-                     <Button variant={'default'} size={'lg'}>
+                     <Button variant={'default'} size={'lg'} onClick={handleSearch}>
                         검색
                      </Button>
                   </div>
                </div>
             </div>
             <div className="flex-1 min-h-0">
-               <TableComponent<TableData>
+               <TableComponent<EventData>
                   columns={[
                      { key: 'name', label: '이벤트 명' },
                      { key: 'host', label: '주최' },
@@ -227,7 +179,7 @@ export default function Event() {
                                         ? 'bg-gray-100 text-gray-800'
                                         : value === '취소'
                                           ? 'bg-red-100 text-red-800'
-                                          : 'bg-yellow-100 text-yellow-800'
+                                          : value === '예약접수' && 'bg-yellow-100 text-yellow-800'
                               }`}
                            >
                               {value}
@@ -239,7 +191,7 @@ export default function Event() {
                />
             </div>
          </div>
-         <div className="flex justify-center">
+         <div className="flex justify-center items-center shrink-0">
             <EllipsisPagination currentPage={currentPage} totalPages={totalPages} handlePageChange={handlePageChange} />
          </div>
       </div>

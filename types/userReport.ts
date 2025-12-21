@@ -27,3 +27,21 @@ export interface PartyReportData {
    event_name: string;
    is_processed: boolean;
 }
+
+export interface EventData {
+   name: string;
+   host: string;
+   period: string;
+   operating_hours: string;
+   price: string;
+   location: string;
+   state: string;
+}
+
+export interface NoticeData {
+   name: string;
+   add_date: string;
+   edit_date: string;
+   top_fixed: boolean;
+   category: string;
+}

@@ -59,7 +59,7 @@ export default function Admin() {
                         onClick={() => setSelectedMenu('notice')}
                         className={`flex w-full gap-1 text-base items-center p-2 rounded-xl hover:bg-primary/8 transition-colors ${selectedMenu === 'notice' && 'text-primary font-semibold'}`}
                      >
-                        <Icon24 name="notice" className="active:text-primary" />
+                        <Icon36 name="notice36" className="active:text-primary" />
                         공지사항 관리
                      </button>
                   </div>
