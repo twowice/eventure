@@ -13,10 +13,9 @@ interface FilterCardProps {
     startDate: string;
     endDate: string;
     imageUrl: string;
-    etcImgUrl: string;
 }
 
-export function EventCard({ id, title, startDate, endDate, region, imageUrl, etcImgUrl }: FilterCardProps) {
+export function EventCard({ id, title, startDate, endDate, region, imageUrl }: FilterCardProps) {
 
     const [liked, setLiked] = useState(false);
     const [loading, setLoading] = useState(true);

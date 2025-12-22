@@ -39,7 +39,7 @@ export default function RootLayout({
   }
 
   // 로그인/회원가입 페이지는 Header 없이 전체 화면
-  if (path.startsWith("/loginpage") || path.startsWith("/signup")) {
+  if (path.startsWith("/loginpage") || path.startsWith("/signup") || path.startsWith("/testpage")) {
     return (
       <html lang="ko">
         <body>

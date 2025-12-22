@@ -58,7 +58,7 @@ export default function Home() {
       <Icon36 name="bigheartdef" />
       <Icon36 name="user" />
       <Icon36 name="festival" />
-
+      <Icon36 name="basicmarker" />
 
       <br /><br />
 

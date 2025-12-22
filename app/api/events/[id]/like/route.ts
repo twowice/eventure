@@ -21,7 +21,7 @@ export async function GET(req: NextRequest, context: any) {
             return NextResponse.json({ message: "❌ Session error" }, { status: 401 });
         }
         const userId = session?.user.id;
-
+        console.log("userId: ", userId);
         /* ===========================
             Like SELECT
         =========================== */

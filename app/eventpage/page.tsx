@@ -12,13 +12,13 @@ import { EmptyIcon } from '@/components/status/EmptyIcon';
 =========================== */
 interface EventItem {
     id: number;
+    region: string;
     title: string;
     startDate: string;
     endDate: string;
-    region: string;
+    overview: string;
     imageUrl: string;
     event_images: string;
-    etcImgUrl: string;
 }
 
 export default function Page() {
@@ -191,7 +191,6 @@ export default function Page() {
                                         startDate={item.startDate}
                                         endDate={item.endDate}
                                         imageUrl={item.imageUrl}
-                                        etcImgUrl={item.etcImgUrl}
                                     />
                                 </Link>
                             ))}

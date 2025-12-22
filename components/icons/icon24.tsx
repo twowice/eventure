@@ -33,7 +33,6 @@ export type Icon24Name =
    | 'hambugi'
    | 'arrow'
    | 'add'
-
    | 'talk'
    | 'doubleclose';
 

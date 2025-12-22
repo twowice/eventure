@@ -39,7 +39,7 @@ export async function GET() {
                 MobileApp: "Myway",
                 _type: "json",
                 arrange: "C",
-                eventStartDate: "20240101",
+                eventStartDate: "20250101",
             });
 
             const res = await fetch(`${BASE_URL}?serviceKey=${KTO_API_KEY}&${params.toString()}`);
@@ -137,13 +137,13 @@ export async function GET() {
                 });
             }
 
-            if (item.firstimage2) {
-                imagePayload.push({
-                    event_id: eventId,
-                    image_url: item.firstimage2,
-                    is_main: false,
-                });
-            }
+            // if (item.firstimage2) {
+            //     imagePayload.push({
+            //         event_id: eventId,
+            //         image_url: item.firstimage2,
+            //         is_main: false,
+            //     });
+            // }
         }
 
         /* ===========================
