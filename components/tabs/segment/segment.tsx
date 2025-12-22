@@ -1,6 +1,6 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TabContentsProps } from "../tabContentsProps";
-import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TabContentsProps } from '../tabContentsProps';
+import { cn } from '@/lib/utils';
 
 /**
  *
@@ -20,42 +20,48 @@ import { cn } from "@/lib/utils";
  * */
 
 export const Segment = ({
-  contents,
-  defaultValue,
+   contents,
+   defaultValue,
+   onValueChange,
 }: {
-  contents: TabContentsProps[];
-  defaultValue?: string;
+   contents: TabContentsProps[];
+   defaultValue?: string;
+   onValueChange?: (value: string) => void;
 }): React.ReactElement => {
-  if (defaultValue === undefined) defaultValue = contents[0].value;
+   if (defaultValue === undefined) defaultValue = contents[0].value;
 
-  return (
-    <Tabs className="flex w-full h-fit p-0" defaultValue={defaultValue}>
-      <TabsList className="flex w-full h-fit bg-primary opacity-80 p-[5px]">
-        {contents.map((element, idx) => (
-          <TabsTrigger
-            key={idx}
-            value={element.value}
-            className={cn(
-              "py-1",
-              "w-full",
-              "data-[state=active]:bg-secondary",
-              "text-primary-foreground",
-              "transition-none",
-              "data-[state=active]:text-secondary-foreground",
-              "text-base",
-              "border-0",
-              "rounded-2"
-            )}
-          >
-            {element.title}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-      {contents.map((element, idx) => (
-        <TabsContent key={idx} value={element.value}>
-          {element.content}
-        </TabsContent>
-      ))}
-    </Tabs>
-  );
+   return (
+      <Tabs className="flex w-full h-full flex-col p-0" defaultValue={defaultValue} onValueChange={onValueChange}>
+         <TabsList className="flex w-full h-fit bg-primary opacity-80 p-[5px]">
+            {contents.map((element, idx) => (
+               <TabsTrigger
+                  key={idx}
+                  value={element.value}
+                  className={cn(
+                     'py-1',
+                     'w-full',
+                     'data-[state=active]:bg-secondary',
+                     'text-primary-foreground',
+                     'transition-none',
+                     'data-[state=active]:text-secondary-foreground',
+                     'text-base',
+                     'border-0',
+                     'rounded-2',
+                  )}
+               >
+                  {element.title}
+               </TabsTrigger>
+            ))}
+         </TabsList>
+         {contents.map((element, idx) => (
+            <TabsContent
+               key={idx}
+               value={element.value}
+               className="flex-1 min-h-0 data-[state=active]:flex flex-col h-full"
+            >
+               {element.content}
+            </TabsContent>
+         ))}
+      </Tabs>
+   );
 };
