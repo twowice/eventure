@@ -4,6 +4,7 @@ import { SearchState, useSearchStore } from "@/stores/map/seachstore";
 import { useShallow } from "zustand/react/shallow";
 import { RouteSearchHistoryItem } from "./RouteSearchHistory";
 import { RouteSearchItem } from "../detail/RouteSearchItem";
+import { getTransPath } from "@/lib/map/search";
 
 export const RouteSearchBody = ({}: {}) => {
   const {
@@ -13,6 +14,8 @@ export const RouteSearchBody = ({}: {}) => {
     setIsDuringSearching,
     setIsAfterSearching,
     isAfterSearching,
+    paths,
+    setPaths,
   } = useSearchStore(
     useShallow((state: SearchState) => ({
       isDuringSearching: state.isDuringSearching,
@@ -21,6 +24,8 @@ export const RouteSearchBody = ({}: {}) => {
       setRoutePoints: state.setRoutePoints,
       setIsAfterSearching: state.setIsAfterSearching,
       isAfterSearching: state.isAfterSearching,
+      paths: state.paths,
+      setPaths: state.setPaths,
     }))
   );
 
@@ -39,23 +44,11 @@ export const RouteSearchBody = ({}: {}) => {
         alert("출발지 또는 목적지 정보가 부족합니다.");
         return;
       }
-
-      const transpathUrl = new URL(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/map/odsay/transpath?sx=${startPlace.lng}&sy=${startPlace.lat}&ex=${endPlace.lng}&ey=${endPlace.lat}`,
-        window.location.origin
-      );
-
-      const response = await fetch(transpathUrl.toString());
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          `길찾기 API 오류: ${errorData.error || "알 수 없는 오류"}`
-        );
-      }
-      const routeData = await response.json();
+      const routeData = await getTransPath(startPlace, endPlace);
 
       console.log("길찾기 API 결과:", routeData);
 
+      setPaths(routeData);
       setRoutePoints(places);
       setIsAfterSearching(true);
     } catch (error: any) {
@@ -85,7 +78,9 @@ export const RouteSearchBody = ({}: {}) => {
 
       <div className="flex gap-0 flex-col">
         {isAfterSearching ? (
-          <RouteSearchItem />
+          paths?.result?.path?.map((path, index) => (
+            <RouteSearchItem key={index} index={index} path={path} />
+          ))
         ) : (
           <RouteSearchHistoryItem
             order={1}
