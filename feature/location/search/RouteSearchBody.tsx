@@ -76,10 +76,16 @@ export const RouteSearchBody = ({}: {}) => {
         <RouteSearchBar order={2} total={2} />
       </div>
 
-      <div className="flex gap-0 flex-col">
+      <div className="flex flex-col gap-2">
         {isAfterSearching ? (
           paths?.result?.path?.map((path, index) => (
-            <RouteSearchItem key={index} index={index} path={path} />
+            <RouteSearchItem
+              key={index}
+              index={index}
+              path={path}
+              fromName={places.find((p) => p.order === 1)?.name ?? ""}
+              toName={places.find((p) => p.order === places.length)?.name ?? ""}
+            />
           ))
         ) : (
           <RouteSearchHistoryItem
