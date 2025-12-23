@@ -7,7 +7,8 @@ import { PartyDrawer } from '@/feature/event/detail/PartyDrawer';
 import { ImageCarousel } from '@/feature/event/detail/ImageCarousel';
 import { PartyRow } from '@/components/partyrow/PartyRow'
 import NaverMapContainer from "@/components/map/NaverMapContainer";
-
+import { EmptyIcon } from '@/components/status/EmptyIcon';
+import { LoadingBounce } from '@/components/status/LoadingBounce';
 
 /* ===========================
    Interface
@@ -91,8 +92,8 @@ export default function Page() {
     fetchEvent();
   }, [id]);
 
-  if (loading) return <p>Loading...</p>;
-  if (!event) return <p>Event not found</p>;
+  if (loading) return <LoadingBounce />;
+  if (!event) return <EmptyIcon />;
 
   return (
     <div className="flex flex-col space-y-4 md:space-y-6 lg:space-y-[22px] pb-[80px] pt-[70px] px-[16px] sm:px-[32px] lg:px-[80px] xl:px-[100px]">
