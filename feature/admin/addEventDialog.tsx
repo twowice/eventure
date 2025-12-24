@@ -1,6 +1,7 @@
 import { CheckboxComponent } from '@/components/basic/checkbox';
 import { RadioComponent } from '@/components/basic/radio';
 import { Icon24 } from '@/components/icons/icon24';
+import { PhotoInputContainer } from '@/components/photo/photo';
 import { OneFunctionPopup } from '@/components/popup/onefunction';
 import { Button } from '@/components/ui/button/button';
 
@@ -10,6 +11,7 @@ export function AddEvent() {
    };
    return (
       <OneFunctionPopup
+         width="!max-w-[800px]"
          dialogTrigger={
             <Button variant={'add'} size={'lg'}>
                <Icon24 name="plus" className="text-primary-foreground" />
@@ -18,7 +20,7 @@ export function AddEvent() {
          }
          title="신규 등록"
          body={
-            <div className="flex flex-col gap-5 w-full ">
+            <div className="flex flex-col gap-5 max-h-[80vh] overflow-y-auto pr-2">
                <div className="flex flex-col gap-2 w-full">
                   <label className="text-sm font-semibold">이벤트 명</label>
                   <input
@@ -29,7 +31,7 @@ export function AddEvent() {
                </div>
                <div className="flex flex-col gap-2 w-full">
                   <label className="text-sm font-semibold">이벤트 이미지</label>
-                  {/* 포토 로직 */}
+                  <PhotoInputContainer initImages={null} uploadImage={() => 5} autoScroll={true} />
                </div>
                <div className="flex flex-col gap-2 w-full">
                   <label className="text-sm font-semibold">이벤트 소개</label>

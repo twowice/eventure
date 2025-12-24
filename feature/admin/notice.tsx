@@ -82,93 +82,95 @@ export default function Notice() {
 
    return (
       <div className="flex  w-full h-full flex-col">
-         <div className="flex flex-1 flex-col gap-6">
-            <div>공지사항 관리</div>
+         <div className="flex flex-col justify-between h-full gap-6">
+            <div className="flex flex-1 flex-col gap-6">
+               <div>공지사항 관리</div>
 
-            <div className="flex flex-col gap-5 h-full w-full ">
-               <div className="flex justify-end">
-                  <AddNotice />
-               </div>
+               <div className="flex flex-col gap-5 h-full w-full ">
+                  <div className="flex justify-end">
+                     <AddNotice />
+                  </div>
 
-               <div className="flex flex-col p-4 gap-4 border rounded-md">
-                  <div className="flex gap-4 text-base font-normal items-center">
-                     <div className="w-16">카테고리</div>
-                     <div className="w-50">
-                        <ComboboxComponent
-                           options={[
-                              { value: 'all', label: '전체' },
-                              { value: '일반', label: '일반' },
-                              { value: '업데이트', label: '업데이트' },
-                              { value: '이벤트', label: '이벤트' },
-                              { value: '이용정책', label: '이용정책' },
-                              { value: '기타', label: '기타' },
-                           ]}
-                           className="w-full"
-                           value={categoryFilter}
-                           onValueChange={setCategoryFilter}
-                        />
-                     </div>
+                  <div className="flex flex-col p-4 gap-4 border rounded-md">
                      <div className="flex gap-4 text-base font-normal items-center">
-                        <div className="w-16">기간</div>
-                        <div className="text-sm text-foreground/50 font-semibold">게시날짜</div>
-                        <Input
-                           type="date"
-                           className="h-10 w-50"
-                           value={addDate}
-                           onChange={e => setAddDate(e.target.value)}
-                        />
-                        <div className="text-sm text-foreground/50 font-semibold">수정날짜</div>
+                        <div className="w-16">카테고리</div>
+                        <div className="w-50">
+                           <ComboboxComponent
+                              options={[
+                                 { value: 'all', label: '전체' },
+                                 { value: '일반', label: '일반' },
+                                 { value: '업데이트', label: '업데이트' },
+                                 { value: '이벤트', label: '이벤트' },
+                                 { value: '이용정책', label: '이용정책' },
+                                 { value: '기타', label: '기타' },
+                              ]}
+                              className="w-full"
+                              value={categoryFilter}
+                              onValueChange={setCategoryFilter}
+                           />
+                        </div>
+                        <div className="flex gap-4 text-base font-normal items-center">
+                           <div className="w-16">기간</div>
+                           <div className="text-sm text-foreground/50 font-semibold">게시날짜</div>
+                           <Input
+                              type="date"
+                              className="h-10 w-50"
+                              value={addDate}
+                              onChange={e => setAddDate(e.target.value)}
+                           />
+                           <div className="text-sm text-foreground/50 font-semibold">수정날짜</div>
 
-                        <Input
-                           type="date"
-                           className="h-10 w-50"
-                           value={editDate}
-                           onChange={e => setEditDate(e.target.value)}
-                        />
+                           <Input
+                              type="date"
+                              className="h-10 w-50"
+                              value={editDate}
+                              onChange={e => setEditDate(e.target.value)}
+                           />
+                        </div>
+                     </div>
+
+                     <div className="flex gap-4 text-base font-normal items-center">
+                        <div className="w-16">분류</div>
+                        <div className="w-50">
+                           <ComboboxComponent
+                              options={[
+                                 { value: 'name', label: '제목' },
+                                 { value: 'top_fixed', label: '상단 고정 유무' },
+                                 { value: 'category', label: '카테고리' },
+                              ]}
+                              className="w-full"
+                              value={sortFilter}
+                              onValueChange={setSortFilter}
+                           />
+                        </div>
+                        <div className="w-16">검색</div>
+                        <div className="flex-1">
+                           <SearchBar value={searchText} onChange={setSearchText} />
+                        </div>
+                     </div>
+
+                     <div className="flex justify-end gap-4">
+                        <Button variant={'secondary'} size={'lg'} onClick={handleReset}>
+                           초기화
+                        </Button>
+                        <Button variant={'default'} size={'lg'} onClick={handleSearch}>
+                           검색
+                        </Button>
                      </div>
                   </div>
 
-                  <div className="flex gap-4 text-base font-normal items-center">
-                     <div className="w-16">분류</div>
-                     <div className="w-50">
-                        <ComboboxComponent
-                           options={[
-                              { value: 'name', label: '제목' },
-                              { value: 'top_fixed', label: '상단 고정 유무' },
-                              { value: 'category', label: '카테고리' },
-                           ]}
-                           className="w-full"
-                           value={sortFilter}
-                           onValueChange={setSortFilter}
-                        />
-                     </div>
-                     <div className="w-16">검색</div>
-                     <div className="flex-1">
-                        <SearchBar value={searchText} onChange={setSearchText} onEnter={handleSearch} />
-                     </div>
+                  <div className="flex-1 min-h-0">
+                     <TableComponent<NoticeData>
+                        columns={[
+                           { key: 'name', label: '제목' },
+                           { key: 'add_date', label: '게시날짜' },
+                           { key: 'edit_date', label: '수정날짜' },
+                           { key: 'top_fixed', label: '상단 고정 유무' },
+                           { key: 'category', label: '카테고리' },
+                        ]}
+                        data={currentData}
+                     />
                   </div>
-
-                  <div className="flex justify-end gap-4">
-                     <Button variant={'secondary'} size={'lg'} onClick={handleReset}>
-                        초기화
-                     </Button>
-                     <Button variant={'default'} size={'lg'} onClick={handleSearch}>
-                        검색
-                     </Button>
-                  </div>
-               </div>
-
-               <div className="flex-1 min-h-0">
-                  <TableComponent<NoticeData>
-                     columns={[
-                        { key: 'name', label: '제목' },
-                        { key: 'add_date', label: '게시날짜' },
-                        { key: 'edit_date', label: '수정날짜' },
-                        { key: 'top_fixed', label: '상단 고정 유무' },
-                        { key: 'category', label: '카테고리' },
-                     ]}
-                     data={currentData}
-                  />
                </div>
             </div>
 

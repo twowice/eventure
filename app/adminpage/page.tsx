@@ -1,6 +1,5 @@
 'use client';
 
-import { Icon24 } from '@/components/icons/icon24';
 import { Icon36 } from '@/components/icons/icon36';
 import Event from '@/feature/admin/event';
 import Notice from '@/feature/admin/notice';
@@ -13,8 +12,8 @@ type MenuType = 'event' | 'notice' | 'user-report' | 'party-report' | null;
 export default function Admin() {
    const [selectedMenu, setSelectedMenu] = useState<MenuType>('event');
    return (
-      <div className="h-screen flex">
-         <div className="flex flex-col w-120 bg-primary/20 h-full p-4 gap-4">
+      <div className="h-screen w-screen flex overflow-hidden">
+         <div className="flex flex-col w-60 max-w-120 bg-primary/20 h-full p-4 gap-4">
             <div className="flex justify-between">
                <div className="flex gap-3">
                   <div className="flex flex-col justify-center items-center">
@@ -85,7 +84,7 @@ export default function Admin() {
                </div>
             </div>
          </div>
-         <div className="flex flex-col w-full text-foreground font-semibold text-2xl p-6">
+         <div className="flex flex-col flex-1 h-full p-6 overflow-hidden">
             {selectedMenu === 'event' && <Event />}
             {selectedMenu === 'notice' && <Notice />}
             {selectedMenu === 'user-report' && <UserReport />}

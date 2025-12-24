@@ -303,6 +303,7 @@ export function AddNotice() {
 
    return (
       <OneFunctionPopup
+         width="!max-w-[800px]"
          dialogTrigger={
             <Button variant={'add'} size={'lg'}>
                <Icon24 name="plus" className="text-primary-foreground" />
@@ -311,7 +312,7 @@ export function AddNotice() {
          }
          title="신규 공지사항 등록"
          body={
-            <div className="flex flex-col gap-5 w-full min-w-[600px]">
+            <div className="flex flex-col gap-5 max-h-[80vh] overflow-y-auto pr-2">
                <div className="flex gap-2 w-full items-center">
                   <label className="text-sm font-semibold">카테고리</label>
                   <RadioComponent

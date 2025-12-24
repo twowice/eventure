@@ -23,7 +23,7 @@ export function TableComponent<T extends Record<string, any>>({
    data = [],
    className,
    emptyMessage = '데이터가 없습니다.',
-   itemsPerPage = 11,
+   itemsPerPage = 10,
 }: TableProps<T>) {
    const containerRef = useRef<HTMLDivElement>(null);
    const [rowHeight, setRowHeight] = useState('60px');
@@ -32,7 +32,7 @@ export function TableComponent<T extends Record<string, any>>({
       if (containerRef.current) {
          const updateHeight = () => {
             const containerHeight = containerRef.current?.clientHeight || 0;
-            const headerHeight = 48;
+            const headerHeight = 40;
             const availableHeight = containerHeight - headerHeight;
             const calculatedHeight = availableHeight / itemsPerPage;
             setRowHeight(`${calculatedHeight}px`);
@@ -54,8 +54,8 @@ export function TableComponent<T extends Record<string, any>>({
    }
 
    return (
-      <div ref={containerRef} className="w-full border rounded-lg overflow-hidden bg-background">
-         <Table className={`table-fixed w-full ${className || ''}`}>
+      <div ref={containerRef} className="w-full h-full border rounded-md bg-background overflow-auto">
+         <Table className={`w-full min-w-max ${className || ''}`}>
             <colgroup>
                {columns.map((column, index) => (
                   <col key={index} className={column.width} />
@@ -63,10 +63,13 @@ export function TableComponent<T extends Record<string, any>>({
             </colgroup>
 
             {/* 헤더 */}
-            <TableHeader className="bg-primary/10">
-               <TableRow className="h-12">
+            <TableHeader className="sticky top-0 z-10">
+               <TableRow className="h-10">
                   {columns.map(column => (
-                     <TableHead key={String(column.key)} className="text-center text-sm font-semibold">
+                     <TableHead
+                        key={String(column.key)}
+                        className="text-center text-sm font-semibold whitespace-nowrap bg-primary/10"
+                     >
                         {column.label}
                      </TableHead>
                   ))}
