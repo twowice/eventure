@@ -41,6 +41,8 @@ export const OneFunctionPopup = ({
    buttonTitle,
    callback = () => {},
    width = 'max-w-[800px]',
+   open,
+   onOpenChange,
 }: {
    className?: string;
    dialogTrigger: ReactNode; //팝업창 오픈 버튼이자 팝업창 오픈 전의 화면에 보여질 컴포넌트
@@ -49,9 +51,11 @@ export const OneFunctionPopup = ({
    buttonTitle: string; //하단 버튼에 들어갈 문자열
    callback?: () => void; //버튼 클릭시 기능 동작 콜백 함수
    width?: string;
+   open?: boolean;
+   onOpenChange?: (open: boolean) => void;
 }): React.ReactElement => {
    return (
-      <Dialog>
+      <Dialog open={open} onOpenChange={onOpenChange}>
          <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>
          <DialogContent
             className={cn(

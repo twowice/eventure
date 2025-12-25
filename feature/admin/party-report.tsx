@@ -77,7 +77,7 @@ export default function PartyReport() {
       <div className="flex w-full h-full flex-col">
          <div className="flex flex-col justify-between h-full gap-6">
             <div className="flex flex-1 flex-col gap-6">
-               <div>파티 신고 관리</div>
+               <div className="text-foreground font-semibold text-2xl">파티 신고 관리</div>
 
                <div className="flex flex-col shrink-0 gap-5">
                   <div className="flex flex-col p-4 gap-4 border rounded-md">

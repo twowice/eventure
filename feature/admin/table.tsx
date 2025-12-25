@@ -7,7 +7,8 @@ interface TableOption<T = string> {
    key: string & keyof T;
    label: string;
    width?: string;
-   render?: (value: T[keyof T], row: T) => React.ReactNode;
+   align?: 'left' | 'center' | 'right';
+   render?: (value: any, row: T) => React.ReactNode;
 }
 
 interface TableProps<T = string> {
@@ -16,6 +17,7 @@ interface TableProps<T = string> {
    className?: string;
    emptyMessage?: string;
    itemsPerPage?: number;
+   onRowClick?: (row: T) => void;
 }
 
 export function TableComponent<T extends Record<string, any>>({
@@ -24,6 +26,7 @@ export function TableComponent<T extends Record<string, any>>({
    className,
    emptyMessage = '데이터가 없습니다.',
    itemsPerPage = 10,
+   onRowClick,
 }: TableProps<T>) {
    const containerRef = useRef<HTMLDivElement>(null);
    const [rowHeight, setRowHeight] = useState('60px');
@@ -54,7 +57,7 @@ export function TableComponent<T extends Record<string, any>>({
    }
 
    return (
-      <div ref={containerRef} className="w-full h-full border rounded-md bg-background overflow-auto">
+      <div ref={containerRef} className="w-full h-full overflow-auto border rounded-md bg-background">
          <Table className={`w-full min-w-max ${className || ''}`}>
             <colgroup>
                {columns.map((column, index) => (
@@ -68,7 +71,7 @@ export function TableComponent<T extends Record<string, any>>({
                   {columns.map(column => (
                      <TableHead
                         key={String(column.key)}
-                        className="text-center text-sm font-semibold whitespace-nowrap bg-primary/10"
+                        className="align-middle text-center text-sm font-semibold whitespace-nowrap bg-primary/10"
                      >
                         {column.label}
                      </TableHead>
@@ -98,13 +101,15 @@ export function TableComponent<T extends Record<string, any>>({
                         <TableRow
                            key={rowIndex}
                            style={{ height: rowHeight }}
-                           className="hover:bg-muted/30 transition-colors"
+                           onClick={() => onRowClick?.(row)}
+                           className={`hover:bg-muted/30 transition-colors
+                           ${onRowClick ? 'cursor-pointer' : ''}`}
                         >
                            {columns.map(column => (
                               <TableCell
                                  key={String(column.key)}
                                  className={`
-                                    text-center 
+                                     ${column.align === 'left' ? 'text-left' : column.align === 'right' ? 'text-right' : 'text-center'}
                                     align-middle 
                                     text-sm
                                     px-4

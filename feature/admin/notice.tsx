@@ -84,7 +84,7 @@ export default function Notice() {
       <div className="flex  w-full h-full flex-col">
          <div className="flex flex-col justify-between h-full gap-6">
             <div className="flex flex-1 flex-col gap-6">
-               <div>공지사항 관리</div>
+               <div className="text-foreground font-semibold text-2xl">공지사항 관리</div>
 
                <div className="flex flex-col gap-5 h-full w-full ">
                   <div className="flex justify-end">

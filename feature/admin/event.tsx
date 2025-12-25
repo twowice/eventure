@@ -7,31 +7,84 @@ import { TableComponent } from './table';
 import { EllipsisPagination } from '@/components/pagination/pagination';
 import { useEffect, useMemo, useState } from 'react';
 import { AddEvent } from './addEventDialog';
-import { allEvents } from '@/dummy/admin';
-import { EventData } from '@/types/userReport';
+import { EventData, EventDisplayData, EventImage } from '@/types/userReport';
 import { Input } from '@/components/ui/input';
+import { EditEvent } from './editEventDialog';
+import { supabase } from '@/lib/clientSupabase';
 
 export default function Event() {
+   const [events, setEvents] = useState<EventData[]>([]);
+   const [loading, setLoading] = useState(true);
    const [currentPage, setCurrentPage] = useState(1);
    const [statusFilter, setStatusFilter] = useState('all');
    const [sortFilter, setSortFilter] = useState('name');
    const [searchText, setSearchText] = useState('');
    const [startDate, setStartDate] = useState('');
    const [endDate, setEndDate] = useState('');
+   const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
+   const [isEditOpen, setIsEditOpen] = useState(false);
 
+   //초기 데이터 로드
+   useEffect(() => {
+      fetchEvents();
+   }, []);
+   const fetchEvents = async () => {
+      try {
+         setLoading(true);
+         const { data, error } = await supabase.from('events').select('*').order('created_at', { ascending: false });
+
+         if (error) throw error;
+         setEvents(data || []);
+      } catch (error) {
+         console.error('이벤트 조회 실패:', error);
+         alert('이벤트 목록을 불러오는데 실패하였습니다.');
+      } finally {
+         setLoading(false);
+      }
+   };
+
+   const convertToDisplayData = (event: EventData): EventDisplayData => {
+      const today = new Date();
+      const start = new Date(event.start_date);
+      const end = new Date(event.end_date);
+
+      let state = '예정';
+      if (today >= start && today <= end) {
+         state = '진행중';
+      } else if (today > end) {
+         state = '종료';
+      }
+
+      let priceDisplay = '무료';
+      if (event.price && event.price > 0) {
+         priceDisplay = `${event.price.toLocaleString()}원`;
+      }
+
+      return {
+         id: event.id!,
+         name: event.title,
+         host: '-',
+         period: `${event.start_date} ~ ${event.end_date}`,
+         operating_hours: '-',
+         price: priceDisplay,
+         location: event.address ? `${event.address}${event.address2 ? ' ' + event.address2 : ''}` : '-',
+         state,
+      };
+   };
    useEffect(() => {
       setCurrentPage(1);
    }, [statusFilter, sortFilter, searchText, startDate, endDate]);
 
    const filterData = useMemo(() => {
+      const displayData = events.map(convertToDisplayData);
       return (
-         allEvents
+         displayData
             //상태
             .filter(event => (statusFilter === 'all' ? true : event.state === statusFilter))
             //검색어 + 분류
             .filter(event => {
                if (!searchText) return true;
-               const field = sortFilter as keyof EventData;
+               const field = sortFilter as keyof EventDisplayData;
                return String(event[field]).toLowerCase().includes(searchText.toLowerCase());
             })
             // 기간
@@ -52,7 +105,7 @@ export default function Event() {
                return true;
             })
       );
-   }, [statusFilter, sortFilter, searchText, startDate, endDate]);
+   }, [events, statusFilter, sortFilter, searchText, startDate, endDate]);
 
    const itemsPerPage = 10;
    const totalPages = useMemo(() => {
@@ -72,19 +125,147 @@ export default function Event() {
    const handleSearch = () => setCurrentPage(1);
    const handleReset = () => {
       setStatusFilter('all');
-      setSortFilter('name');
+      setSortFilter('title');
       setSearchText('');
       setStartDate('');
       setEndDate('');
       setCurrentPage(1);
    };
 
+   const handleAddEvents = async (formData: any) => {
+      try {
+         const eventData: Partial<EventData> = {
+            title: formData.eventName,
+            start_date: formData.startDate,
+            end_date: formData.endDate,
+            address: formData.roadAddress,
+            address2: formData.detailAddress,
+            homepage: formData.eventHomepage,
+            overview: formData.eventIntro,
+            price: formData.isFreeForAll ? 0 : Number(formData.adultPrice) || 0,
+            content_id: Date.now(),
+         };
+         const { data: newEvent, error: eventError } = await supabase
+            .from('events')
+            .insert([eventData])
+            .select()
+            .single();
+
+         if (eventError) throw eventError;
+
+         if (formData.eventImages && formData.eventImages.length > 0) {
+            const imageData: Partial<EventImage>[] = formData.eventImages.map((url: string, index: number) => ({
+               event_id: newEvent.id,
+               image_url: url,
+               is_main: index === 0,
+            }));
+
+            const { error: imageError } = await supabase.from('event_images').insert(imageData);
+
+            if (imageError) throw imageError;
+
+            const { data: eventWithImages } = await supabase
+               .from('events')
+               .select(`*, event_images (*)`)
+               .eq('id', newEvent.id)
+               .single();
+
+            // 로컬 업뎃
+            setEvents(prev => [eventWithImages, ...prev]);
+         } else {
+            setEvents(prev => [newEvent, ...prev]);
+         }
+         setCurrentPage(1);
+      } catch (error) {
+         console.error('이벤트 등록 실패:', error);
+         alert('이벤트 등록에 실패했습니다.');
+         throw error;
+      }
+   };
+
+   const handleRowClick = (displayEvent: EventDisplayData) => {
+      const originalEvent = events.find(e => e.id === displayEvent.id);
+      if (originalEvent) {
+         setSelectedEvent(originalEvent);
+         setIsEditOpen(true);
+      }
+   };
+
+   const handleEditEvents = async (formData: any, originalEvent: EventData) => {
+      try {
+         // 이벤트 데이터 업데이트
+         const eventData: Partial<EventData> = {
+            title: formData.eventName,
+            start_date: formData.startDate,
+            end_date: formData.endDate,
+            address: formData.roadAddress,
+            address2: formData.detailAddress,
+            homepage: formData.eventHomepage,
+            overview: formData.eventIntro,
+            price: formData.isFreeForAll ? 0 : Number(formData.adultPrice) || 0,
+         };
+
+         const { error: eventError } = await supabase.from('events').update(eventData).eq('id', originalEvent.id);
+
+         if (eventError) throw eventError;
+
+         // 기존 이미지 삭제 (CASCADE로 자동 삭제됨)
+         if (formData.eventImages && formData.eventImages.length > 0) {
+            // 기존 이미지 삭제
+            await supabase.from('event_images').delete().eq('event_id', originalEvent.id);
+
+            // 새 이미지 삽입
+            const imageData: Partial<EventImage>[] = formData.eventImages.map((url: string, index: number) => ({
+               event_id: originalEvent.id,
+               image_url: url,
+               is_main: index === 0,
+            }));
+
+            const { error: imageError } = await supabase.from('event_images').insert(imageData);
+
+            if (imageError) throw imageError;
+         }
+
+         // 업데이트된 데이터 다시 조회
+         const { data: updatedEvent } = await supabase
+            .from('events')
+            .select(
+               `
+               *,
+               event_images (*)
+            `,
+            )
+            .eq('id', originalEvent.id)
+            .single();
+
+         // 로컬 상태 업데이트
+         setEvents(prev => prev.map(event => (event.id === originalEvent.id ? updatedEvent : event)));
+      } catch (error) {
+         console.error('이벤트 수정 실패:', error);
+         alert('이벤트 수정에 실패했습니다.');
+         throw error;
+      }
+   };
+
+   const handleCloseEdit = () => {
+      setIsEditOpen(false);
+      setSelectedEvent(null);
+   };
+
+   if (loading) {
+      return (
+         <div className="flex items-center justify-center h-full">
+            <p>로딩 중...</p>
+         </div>
+      );
+   }
+
    return (
       <div className="flex flex-col gap-6 w-full h-full">
          <div className="text-foreground font-semibold text-2xl">이벤트 관리</div>
 
          <div className="flex justify-end">
-            <AddEvent />
+            <AddEvent onAddEvent={handleAddEvents} />
          </div>
          <div className="flex flex-col p-4 gap-4 border rounded-md shrink-0 w-full">
             <div className="flex flex-col gap-4 xl:flex-row">
@@ -168,14 +349,14 @@ export default function Event() {
          </div>
          <div className="flex-1 min-h-0 relative overflow-hidden">
             <div className="absolute inset-0 overflow-auto">
-               <TableComponent<EventData>
+               <TableComponent<EventDisplayData>
                   columns={[
-                     { key: 'name', label: '이벤트 명' },
+                     { key: 'name', label: '이벤트 명', align: 'left' },
                      { key: 'host', label: '주최' },
                      { key: 'period', label: '기간' },
                      { key: 'operating_hours', label: '운영 시간' },
                      { key: 'price', label: '가격' },
-                     { key: 'location', label: '이벤트 장소' },
+                     { key: 'location', label: '이벤트 장소', align: 'left' },
                      {
                         key: 'state',
                         label: '이벤트 상태',
@@ -199,12 +380,20 @@ export default function Event() {
                      },
                   ]}
                   data={currentData}
+                  onRowClick={handleRowClick}
                />
             </div>
          </div>
          <div className="flex justify-center items-center shrink-0">
             <EllipsisPagination currentPage={currentPage} totalPages={totalPages} handlePageChange={handlePageChange} />
          </div>
+
+         <EditEvent
+            event={selectedEvent}
+            isOpen={isEditOpen}
+            onClose={handleCloseEdit}
+            onEditEvent={handleEditEvents}
+         />
       </div>
    );
 }
