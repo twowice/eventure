@@ -5,6 +5,7 @@ import { useShallow } from "zustand/react/shallow";
 import { RouteSearchHistoryItem } from "./RouteSearchHistory";
 import { RouteSearchItem } from "../detail/RouteSearchItem";
 import { getTransPath } from "@/lib/map/odsay";
+import { RouteDetailPopup } from "../detail/RouteDetailPopup";
 
 export const RouteSearchBody = ({}: {}) => {
   const {
@@ -79,13 +80,17 @@ export const RouteSearchBody = ({}: {}) => {
       <div className="flex flex-col gap-2">
         {isAfterSearching ? (
           paths?.result?.path?.map((path, index) => (
-            <RouteSearchItem
-              key={index}
-              index={index}
-              path={path}
-              fromName={places.find((p) => p.order === 1)?.name ?? ""}
-              toName={places.find((p) => p.order === places.length)?.name ?? ""}
-            />
+            <RouteDetailPopup key={`popup-${index}`}>
+              <RouteSearchItem
+                key={index}
+                index={index}
+                path={path}
+                fromName={places.find((p) => p.order === 1)?.name ?? ""}
+                toName={
+                  places.find((p) => p.order === places.length)?.name ?? ""
+                }
+              />
+            </RouteDetailPopup>
           ))
         ) : (
           <RouteSearchHistoryItem

@@ -1,3 +1,4 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Icon24 } from "@/components/icons/icon24";
 import { Path } from "@/app/api/map/odsay/odsay";
@@ -5,6 +6,23 @@ import { RouteStopoverItem } from "./RouteStopoverItem";
 import { makeRouteBarSegments, RouteProgressBar } from "./RouteProgressBar";
 import { formatKoreanTime } from "@/utills/date/dateFormat";
 import { getSegmentColor } from "@/utills/route/routeSegmentColors";
+
+type Props = {
+  index: number;
+  path: Path;
+  fromName: string;
+  toName: string;
+  departAt?: Date;
+} & React.HTMLAttributes<HTMLDivElement>;
+
+const PATH_TYPE_LABEL: Record<number, string> = {
+  1: "지하철",
+  2: "버스",
+  3: "지하철+버스",
+  11: "기차",
+  12: "버스",
+  20: "시외/고속버스",
+};
 
 function getTrainLineLabel(s: any) {
   const TRAIN_TYPE_LABEL: Record<number, string> = {
@@ -16,7 +34,6 @@ function getTrainLineLabel(s: any) {
     6: "공항철도",
     7: "ITX-청춘",
   };
-
   const base = TRAIN_TYPE_LABEL[Number(s.trainType)] ?? "기차";
   const sp = s.trainSpSeatYn === "Y" ? "(특실)" : "";
   return `${base}${sp}`;
@@ -48,7 +65,7 @@ function makeTransitRows(path: Path) {
     const lineLabel =
       s.trafficType === 1
         ? String(lane0?.name ?? "")
-            .replace(/^수도권\s*/g, "") // 맨 앞의 "수도권" + 뒤 공백(있으면) 제거
+            .replace(/^수도권\s*/g, "")
             .trim() || "지하철"
         : s.trafficType === 4
         ? getTrainLineLabel(s)
@@ -60,106 +77,101 @@ function makeTransitRows(path: Path) {
         ? `${lane0?.name}번 버스`
         : "버스";
 
-    const stationName = s.startName ? `${s.startName}` : "";
-
-    const way = s.way ? `${s.way}행` : "";
-
-    const color = getSegmentColor(s);
-    const endStation = s.endName;
-
-    return { lineLabel, stationName, way, color, endStation };
+    return {
+      lineLabel,
+      stationName: s.startName ? `${s.startName}` : "",
+      way: s.way ? `${s.way}행` : "",
+      color: getSegmentColor(s),
+      endStation: s.endName,
+    };
   });
 }
 
-const PATH_TYPE_LABEL: Record<number, string> = {
-  1: "지하철",
-  2: "버스",
-  3: "지하철+버스",
-  11: "기차",
-  12: "버스",
-  20: "시외/고속버스",
-};
+export const RouteSearchItem = React.forwardRef<HTMLDivElement, Props>(
+  (
+    {
+      index,
+      path,
+      fromName,
+      toName,
+      departAt = new Date(),
+      onClick,
+      className,
+      ...rest
+    },
+    ref
+  ) => {
+    const label =
+      index === 0 ? "최적" : PATH_TYPE_LABEL[path.pathType] ?? "알 수 없음";
 
-export function RouteSearchItem({
-  index,
-  path,
-  fromName,
-  toName,
-  departAt = new Date(),
-}: {
-  index: number;
-  path: Path;
-  fromName: string;
-  toName: string;
-  departAt?: Date;
-}) {
-  const label =
-    index === 0 ? "최적" : PATH_TYPE_LABEL[path.pathType] ?? "알 수 없음";
+    const arrival = new Date(
+      departAt.getTime() + path.info.totalTime * 60 * 1000
+    );
+    const arrivalText = `${formatKoreanTime(arrival)} 도착`;
+    const departText = formatKoreanTime(departAt);
 
-  const depart = departAt ?? new Date();
-  const arrival = new Date(depart.getTime() + path.info.totalTime * 60 * 1000);
+    const transitRows = makeTransitRows(path);
+    const segments = makeRouteBarSegments(path);
 
-  const arrivalText = `${formatKoreanTime(arrival)} 도착`;
-  const departText = formatKoreanTime(depart);
-
-  const transitRows = makeTransitRows(path);
-
-  const segments = makeRouteBarSegments(path);
-
-  return (
-    <div className="rounded-2xl bg-secondary/60 p-5" onClick={() => {}}>
-      {/* 헤더 */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          {label === "최적" && (
-            <span className="text-primary font-semibold text-[12px] md:text-[14px]">
-              {label}
-            </span>
-          )}
-          <div className="flex flex-row gap-2 items-center">
-            <div className="flex items-baseline gap-1">
-              <span className="text-[16px] md:text-[18px] font-bold">
-                {path.info.totalTime}
+    return (
+      <div
+        ref={ref}
+        {...rest}
+        className={`rounded-2xl bg-secondary/60 p-5 ${className ?? ""}`}
+        onClick={onClick}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {label === "최적" && (
+              <span className="text-primary font-semibold text-[12px] md:text-[14px]">
+                {label}
               </span>
-              <span className="text-[12px] md:text-[14px]">분</span>
-            </div>
+            )}
+            <div className="flex flex-row gap-2 items-center">
+              <div className="flex items-baseline gap-1">
+                <span className="text-[16px] md:text-[18px] font-bold">
+                  {path.info.totalTime}
+                </span>
+                <span className="text-[12px] md:text-[14px]">분</span>
+              </div>
 
-            <span className="text-muted-foreground text-[12px] md:text-[14px]">
-              {arrivalText}
-            </span>
+              <span className="text-muted-foreground text-[12px] md:text-[14px]">
+                {arrivalText}
+              </span>
+            </div>
           </div>
+
+          <Button variant="ghost" size="icon" className="rounded-full">
+            <Icon24 name="go" className="h-6 w-6" />
+          </Button>
         </div>
 
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <Icon24 name="go" className="h-6 w-6" />
-        </Button>
-      </div>
+        <RouteProgressBar segments={segments} />
 
-      {/* 진행 바 */}
-      <RouteProgressBar segments={segments} />
-
-      {/* 본문(출발/노선/도착) */}
-      <div className="mt-4 space-y-1">
-        <RouteStopoverItem
-          leftLabel="출발"
-          mainText={fromName}
-          rightText={departText}
-        />
-
-        {transitRows.map((r, idx) => (
+        <div className="mt-4 space-y-1">
           <RouteStopoverItem
-            key={`${r.lineLabel}-${r.stationName}-${idx}`}
-            leftLabel={r.lineLabel} // 수도권 n호선이 “지하철” 자리로
-            mainText={r.stationName} // 역 이름이 “수도권 n호선” 자리로
-            rightText={r.way}
-            accent
-            color={r.color}
-            endStation={r.endStation}
+            leftLabel="출발"
+            mainText={fromName}
+            rightText={departText}
           />
-        ))}
 
-        <RouteStopoverItem leftLabel="도착" mainText={toName} />
+          {transitRows.map((r, idx) => (
+            <RouteStopoverItem
+              key={`${r.lineLabel}-${r.stationName}-${idx}`}
+              leftLabel={r.lineLabel}
+              mainText={r.stationName}
+              rightText={r.way}
+              accent
+              color={r.color}
+              endStation={r.endStation}
+            />
+          ))}
+
+          <RouteStopoverItem leftLabel="도착" mainText={toName} />
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
+);
+
+RouteSearchItem.displayName = "RouteSearchItem";

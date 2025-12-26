@@ -1,6 +1,6 @@
 import { getSegmentColor } from "@/utills/route/routeSegmentColors";
 
-type BarSeg = { color: string; ratio: number };
+export type BarSeg = { color: string; ratio: number };
 
 export function makeRouteBarSegments(path: any): BarSeg[] {
   const subs = (path.subPath ?? [])
