@@ -5,10 +5,11 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 export async function getLoadlane(mapObject: string) {
     try {
         const apiUrl = new URL(
-            `${API_URL}/api/map/odsay/loadlane`,
+            `${API_URL}/api/map/odsay/loadlane?mapObject=${mapObject}`,
             window.location.origin
         );
-        apiUrl.searchParams.append("mapObject", mapObject);
+
+        console.log(`[getLoadlane] API Url: ${apiUrl}`)
 
         const response = await fetch(apiUrl.toString(), {
             method: "GET",

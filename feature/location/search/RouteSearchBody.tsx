@@ -4,12 +4,16 @@ import { SearchState, useSearchStore } from "@/stores/map/seachstore";
 import { useShallow } from "zustand/react/shallow";
 import { RouteSearchHistoryItem } from "./RouteSearchHistory";
 import { RouteSearchItem } from "../detail/RouteSearchItem";
-import { getTransPath } from "@/lib/map/odsay";
+import { getLoadlane, getTransPath } from "@/lib/map/odsay";
 import { RouteDetailPopup } from "../detail/RouteDetailPopup";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useMapStore } from "@/stores/map/store";
+import type { OdsayLoadLane } from "@/app/api/map/odsay/odsay";
 
 export const RouteSearchBody = ({}: {}) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const { map, isMapScriptLoaded } = useMapStore();
+  const activePolylineRef = useRef<any>(null);
   const {
     places,
     setRoutePoints,
@@ -63,6 +67,37 @@ export const RouteSearchBody = ({}: {}) => {
     }
   };
 
+  const drawLoadlane = async (mapObj: string) => {
+    if (!map || !isMapScriptLoaded || !mapObj) return;
+
+    const data = (await getLoadlane(mapObj)) as OdsayLoadLane;
+    console.log("경로 그리기 API 결과:", data);
+    const graphPositions =
+      data?.result?.lane?.flatMap((lane) =>
+        lane.section?.flatMap((section) => section.graphPos ?? [])
+      ) ?? [];
+
+    if (graphPositions.length === 0) return;
+
+    const path = graphPositions.map(
+      (pos) => new window.naver.maps.LatLng(pos.y, pos.x)
+    );
+
+    if (activePolylineRef.current) {
+      activePolylineRef.current.setMap(null);
+    }
+
+    const polyline = new window.naver.maps.Polyline({
+      map,
+      path,
+      strokeColor: "#007de4",
+      strokeWeight: 5,
+      strokeOpacity: 0.9,
+    });
+
+    activePolylineRef.current = polyline;
+  };
+
   return (
     <div className="bg-white p-4 w-full flex flex-col gap-6">
       <div className="flex flex-col gap-2">
@@ -85,9 +120,7 @@ export const RouteSearchBody = ({}: {}) => {
             <RouteDetailPopup
               key={`popup-${index}`}
               open={openIndex === index}
-              onOpenChange={(isOpen) =>
-                setOpenIndex(isOpen ? index : null)
-              }
+              onOpenChange={(isOpen) => setOpenIndex(isOpen ? index : null)}
             >
               <RouteSearchItem
                 key={index}
@@ -97,6 +130,10 @@ export const RouteSearchBody = ({}: {}) => {
                 toName={
                   places.find((p) => p.order === places.length)?.name ?? ""
                 }
+                onClick={() => {
+                  setOpenIndex(index);
+                  void drawLoadlane(path.info.mapObj);
+                }}
               />
             </RouteDetailPopup>
           ))
