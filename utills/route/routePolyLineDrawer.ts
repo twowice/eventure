@@ -1,5 +1,5 @@
 import { GraphPo, Lane, OdsayLoadLane } from "@/app/api/map/odsay/odsay";
-import { getSegmentColor, WALK_COLOR } from "./routeColors";
+import { getLaneTypeColor, getSegmentColor, WALK_COLOR } from "./routeColors";
 
 function first<T>(arr?: T[]): T | undefined {
   return arr && arr.length ? arr[0] : undefined;
@@ -38,6 +38,14 @@ export type ODsayLaneLike = {
   class: number;
   type: number;
 };
+
+function getOdsayLaneColor(lane: ODsayLaneLike): string {
+  return getLaneTypeColor(lane);
+}
+
+function getLaneStyle(lane: Lane): RoutePolylineStyle {
+  return getStyles(lane, { isTransfer: false });
+}
 
 /**
  * 지도에 그릴 때 사용할 스타일.

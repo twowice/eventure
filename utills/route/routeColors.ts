@@ -1,4 +1,4 @@
-const WALK_COLOR = "#D9D9D9";
+export const WALK_COLOR = "#D9D9D9";
 export const DEFAULT_COLOR = "#6B7280";
 
 const SUBWAY_LINE_COLOR: Record<number, string> = {
@@ -150,6 +150,18 @@ export function getSegmentColor(sub: any): string {
             sub?.lane?.[0]?.type != null)
     ) {
         return getExpressIntercityBusColor(sub);
+    }
+
+    return DEFAULT_COLOR;
+}
+
+export function getLaneTypeColor(lane: { class: number; type: number }): string {
+    if (lane.class === 2) {
+        return SUBWAY_LINE_COLOR[lane.type] ?? DEFAULT_COLOR;
+    }
+
+    if (lane.class === 1) {
+        return BUS_TYPE_COLOR[lane.type] ?? DEFAULT_COLOR;
     }
 
     return DEFAULT_COLOR;

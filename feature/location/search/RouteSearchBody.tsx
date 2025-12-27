@@ -9,11 +9,16 @@ import { RouteDetailPopup } from "../detail/RouteDetailPopup";
 import { useRef, useState } from "react";
 import { useMapStore } from "@/stores/map/store";
 import type { OdsayLoadLane } from "@/app/api/map/odsay/odsay";
+import {
+  clearDrawResult,
+  drawOdsayStyledPolylinesWithTransfer,
+  type DrawResult,
+} from "@/utills/route/routePolyLineDrawer";
 
 export const RouteSearchBody = ({}: {}) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const { map, isMapScriptLoaded } = useMapStore();
-  const activePolylineRef = useRef<any>(null);
+  const drawResultRef = useRef<DrawResult | null>(null);
   const {
     places,
     setRoutePoints,
@@ -67,35 +72,28 @@ export const RouteSearchBody = ({}: {}) => {
     }
   };
 
+  const normalizeMapObject = (mapObj: string) => {
+    const trimmed = mapObj.trim();
+    if (!trimmed) return "";
+    const head = trimmed.split("@")[0]?.split(":") ?? [];
+    if (head.length === 2) return trimmed;
+    return `0:0@${trimmed}`;
+  };
+
   const drawLoadlane = async (mapObj: string) => {
     if (!map || !isMapScriptLoaded || !mapObj) return;
 
-    const data = (await getLoadlane(mapObj)) as OdsayLoadLane;
+    const normalized = normalizeMapObject(mapObj);
+    if (!normalized) return;
+
+    const data = (await getLoadlane(normalized)) as OdsayLoadLane;
     console.log("경로 그리기 API 결과:", data);
-    const graphPositions =
-      data?.result?.lane?.flatMap((lane) =>
-        lane.section?.flatMap((section) => section.graphPos ?? [])
-      ) ?? [];
-
-    if (graphPositions.length === 0) return;
-
-    const path = graphPositions.map(
-      (pos) => new window.naver.maps.LatLng(pos.y, pos.x)
-    );
-
-    if (activePolylineRef.current) {
-      activePolylineRef.current.setMap(null);
+    if (drawResultRef.current) {
+      clearDrawResult(drawResultRef.current);
+      drawResultRef.current = null;
     }
 
-    const polyline = new window.naver.maps.Polyline({
-      map,
-      path,
-      strokeColor: "#007de4",
-      strokeWeight: 5,
-      strokeOpacity: 0.9,
-    });
-
-    activePolylineRef.current = polyline;
+    drawResultRef.current = drawOdsayStyledPolylinesWithTransfer(map, data);
   };
 
   return (
