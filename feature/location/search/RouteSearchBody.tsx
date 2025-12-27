@@ -6,8 +6,10 @@ import { RouteSearchHistoryItem } from "./RouteSearchHistory";
 import { RouteSearchItem } from "../detail/RouteSearchItem";
 import { getTransPath } from "@/lib/map/odsay";
 import { RouteDetailPopup } from "../detail/RouteDetailPopup";
+import { useState } from "react";
 
 export const RouteSearchBody = ({}: {}) => {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
   const {
     places,
     setRoutePoints,
@@ -80,7 +82,13 @@ export const RouteSearchBody = ({}: {}) => {
       <div className="flex flex-col gap-2">
         {isAfterSearching ? (
           paths?.result?.path?.map((path, index) => (
-            <RouteDetailPopup key={`popup-${index}`}>
+            <RouteDetailPopup
+              key={`popup-${index}`}
+              open={openIndex === index}
+              onOpenChange={(isOpen) =>
+                setOpenIndex(isOpen ? index : null)
+              }
+            >
               <RouteSearchItem
                 key={index}
                 index={index}

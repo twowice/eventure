@@ -32,20 +32,44 @@ export const InfomationPopup = ({
   dialogTrigger,
   title,
   body,
+  hideOverlay = false,
+  position = "center",
+  preventOutsideClose = false,
+  allowOutsideInteraction = false,
+  open,
+  onOpenChange,
 }: {
   className?: string;
   dialogTrigger: ReactNode; //팝업창 오픈 버튼이자 팝업창 오픈 전의 화면에 보여질 컴포넌트
   title: string; //팝업창 제목 (좌상단 가장 큰 글자)
   body: ReactNode; //팝업창 바디에 들어갈 컴포넌트
+  hideOverlay?: boolean;
+  position?: "center" | "top-left" | "top-right";
+  preventOutsideClose?: boolean;
+  allowOutsideInteraction?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }): React.ReactElement => {
   return (
-    <Dialog>
+    <Dialog
+      modal={!allowOutsideInteraction}
+      open={open}
+      onOpenChange={onOpenChange}
+    >
       <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>
       <DialogContent
         className={cn(
           "flex flex-col bg-white max-w-none p-4 gap-4",
           className ? "lg:max-w-none sm:max-w-none max-w-none " + className : ""
         )}
+        hideOverlay={hideOverlay}
+        position={position}
+        onInteractOutside={
+          preventOutsideClose ? (event) => event.preventDefault() : undefined
+        }
+        onPointerDownOutside={
+          preventOutsideClose ? (event) => event.preventDefault() : undefined
+        }
       >
         <DialogHeader>
           <DialogTitle>
