@@ -19,18 +19,22 @@ export interface UserReportData {
 }
 
 export interface PartyReportData {
-   user_name: string;
+   id?: number;
+   party_id: number;
    party_name: string;
+   party_chairman_id: number;
    party_chairman_name: string;
-   report_date: string;
-   party_dissolution_date: string;
-   sanction_content: string;
-   sanction_type: string;
+   reporter_id: number;
    reporter_name: string;
    report_category: string;
-   add_opinion: string;
-   event_name: string;
+   report_content: string;
+   report_date: string;
+   sanction_type: string;
+   party_dissolution_date?: string;
    is_processed: boolean;
+   add_opinion?: string;
+   created_at?: string;
+   updated_at?: string;
 }
 
 export interface EventImage {
