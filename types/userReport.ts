@@ -1,16 +1,21 @@
 export interface UserReportData {
+   id?: number;
+   user_id: number;
    user_name: string;
    phone_number: string;
-   event_name: string;
-   sanction_content: string;
-   sanction_chat: string;
+   reporter_id: number;
    reporter_name: string;
-   report_date: string;
    report_category: string;
+   report_content: string;
+   report_date: string;
    sanction_type: string;
-   sanction_period: string;
-   add_opinion: string;
-   is_processed: boolean; // 신고 처리 여부
+   sanction_start_date?: string;
+   sanction_end_date?: string;
+   sanction_period?: string;
+   is_processed: boolean;
+   add_opinion?: string;
+   created_at?: string;
+   updated_at?: string;
 }
 
 export interface PartyReportData {
