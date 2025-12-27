@@ -60,12 +60,19 @@ export default function Event() {
          priceDisplay = `${event.price.toLocaleString()}원`;
       }
 
+      let operatingHours = '-';
+      if (event.start_time || event.end_time) {
+         const startTime = event.start_time || '00:00';
+         const endTime = event.end_time || '23:59';
+         operatingHours = `${startTime} ~ ${endTime}`;
+      }
+
       return {
          id: event.id!,
          name: event.title,
-         host: '-',
+         host: event.organizer || '-',
          period: `${event.start_date} ~ ${event.end_date}`,
-         operating_hours: '-',
+         operating_hours: operatingHours,
          price: priceDisplay,
          location: event.address ? `${event.address}${event.address2 ? ' ' + event.address2 : ''}` : '-',
          state,
@@ -85,7 +92,13 @@ export default function Event() {
             .filter(event => {
                if (!searchText) return true;
                const field = sortFilter as keyof EventDisplayData;
-               return String(event[field]).toLowerCase().includes(searchText.toLowerCase());
+               const value = String(event[field]).toLowerCase();
+
+               if (field === 'operating_hours') {
+                  return value.replace(/:/g, '').includes(searchText.replace(/:/g, '').toLowerCase());
+               }
+
+               return value.includes(searchText.toLowerCase());
             })
             // 기간
             .filter(event => {
@@ -137,7 +150,9 @@ export default function Event() {
          const eventData: Partial<EventData> = {
             title: formData.eventName,
             start_date: formData.startDate,
+            start_time: formData.startTime,
             end_date: formData.endDate,
+            end_time: formData.endTime,
             address: formData.roadAddress,
             address2: formData.detailAddress,
             homepage: formData.eventHomepage,
@@ -197,7 +212,9 @@ export default function Event() {
          const eventData: Partial<EventData> = {
             title: formData.eventName,
             start_date: formData.startDate,
+            start_time: formData.startTime,
             end_date: formData.endDate,
+            end_time: formData.endTime,
             address: formData.roadAddress,
             address2: formData.detailAddress,
             homepage: formData.eventHomepage,
@@ -247,6 +264,25 @@ export default function Event() {
       }
    };
 
+   const handleDeleteEvents = async (eventId: number) => {
+      try {
+         const { error: eventError } = await supabase.from('events').delete().eq('id', eventId);
+
+         if (eventError) throw eventError;
+
+         setEvents(prev => prev.filter(event => event.id !== eventId));
+
+         const remainItems = events.filter(e => e.id !== eventId).length;
+         const newTotalPages = Math.ceil(remainItems / itemsPerPage);
+         if (currentPage > newTotalPages && newTotalPages > 0) {
+            setCurrentPage(newTotalPages);
+         }
+      } catch (error) {
+         console.error('이벤트 삭제 실패:', error);
+         alert('이벤트 삭제에 실패했습니다.');
+         throw error;
+      }
+   };
    const handleCloseEdit = () => {
       setIsEditOpen(false);
       setSelectedEvent(null);
@@ -393,6 +429,7 @@ export default function Event() {
             isOpen={isEditOpen}
             onClose={handleCloseEdit}
             onEditEvent={handleEditEvents}
+            onDeleteEvent={handleDeleteEvents}
          />
       </div>
    );

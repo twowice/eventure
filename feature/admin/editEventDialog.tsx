@@ -2,7 +2,7 @@ import { CheckboxComponent } from '@/components/basic/checkbox';
 import { RadioComponent } from '@/components/basic/radio';
 import { Icon24 } from '@/components/icons/icon24';
 import { PhotoInputContainer } from '@/components/photo/photo';
-import { OneFunctionPopup } from '@/components/popup/onefunction';
+import { TwoFunctionPopup } from '@/components/popup/twofunction';
 import { Button } from '@/components/ui/button/button';
 import { useEffect, useState } from 'react';
 
@@ -11,9 +11,10 @@ interface EditEventProps {
    isOpen: boolean;
    onClose: () => void;
    onEditEvent: (formData: any, originalEvent: any) => Promise<void>;
+   onDeleteEvent: (eventId: number) => Promise<void>;
 }
 
-export function EditEvent({ event, isOpen, onClose, onEditEvent }: EditEventProps) {
+export function EditEvent({ event, isOpen, onClose, onEditEvent, onDeleteEvent }: EditEventProps) {
    const [eventName, setEventName] = useState('');
    const [eventImages, setEventImages] = useState<string[] | null>(null);
    const [eventIntro, setEventIntro] = useState('');
@@ -60,15 +61,19 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent }: EditEventProp
       setEventHomepage(eventData.homepage || '');
 
       // 주최사
-      setHosts(['']);
+      if (eventData.organizer) {
+         setHosts([eventData.organizer]);
+      } else {
+         setHosts(['']);
+      }
 
       // 이벤트 기간
       setStartDate(eventData.start_date || '');
       setEndDate(eventData.end_date || '');
 
-      // 운영 시간 (DB에 없으면 빈 문자열)
-      setStartTime('');
-      setEndTime('');
+      // 운영 시간
+      setStartTime(eventData.start_time || '');
+      setEndTime(eventData.end_time || '');
 
       // 예약 접수 (DB에 없으면 false)
       setReservationStartDate('');
@@ -120,7 +125,7 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent }: EditEventProp
          eventImages,
          eventIntro,
          eventHomepage,
-         hosts: hosts.filter(h => h.trim()),
+         organizer: hosts[0] || '',
          startDate,
          endDate,
          startTime,
@@ -168,11 +173,27 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent }: EditEventProp
       console.log('주소 검색');
    };
 
+   const handleDelete = async () => {
+      if (!event?.id) return;
+
+      const confirmDelete = window.confirm('정말로 이 이벤트를 삭제하시겠습니까?\n삭제된 데이터는 복구할 수 없습니다.');
+
+      if (!confirmDelete) return;
+
+      try {
+         await onDeleteEvent(event.id);
+         onClose();
+         alert('이벤트가 삭제되었습니다.');
+      } catch (error) {
+         console.error('이벤트 삭제 실패:', error);
+      }
+   };
+
    if (!event) return null;
 
    return (
-      <OneFunctionPopup
-         width="!max-w-[800px]"
+      <TwoFunctionPopup
+         className="max-w-[800px]!"
          open={isOpen}
          onOpenChange={open => {
             if (!open) onClose();
@@ -209,8 +230,7 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent }: EditEventProp
                {/* 이벤트 소개 */}
                <div className="flex flex-col gap-2 w-full">
                   <label className="text-sm font-semibold">이벤트 소개</label>
-                  <input
-                     type="text"
+                  <textarea
                      value={eventIntro}
                      onChange={e => setEventIntro(e.target.value)}
                      className="flex-1 text-sm px-4 py-2 border rounded-md"
@@ -327,7 +347,7 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent }: EditEventProp
                         value={reservationStartDate}
                         onChange={e => setReservationStartDate(e.target.value)}
                         disabled={!isReservationEnabled}
-                        className="flex-1 text-sm px-4 py-2 border rounded-md disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        className="flex-1 text-sm px-4 py-2 border rounded-md disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                      />
                      <span>~</span>
                      <input
@@ -335,7 +355,7 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent }: EditEventProp
                         value={reservationEndDate}
                         disabled={!isReservationEnabled}
                         onChange={e => setReservationEndDate(e.target.value)}
-                        className="flex-1 text-sm px-4 py-2 border rounded-md disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        className="flex-1 text-sm px-4 py-2 border rounded-md disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                      />
                   </div>
                </div>
@@ -366,7 +386,7 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent }: EditEventProp
                            value={adultPrice}
                            onChange={e => setAdultPrice(e.target.value.replace(/[^0-9]/g, ''))}
                            disabled={isFreeForAll}
-                           className="flex-1 text-sm px-4 py-2 border rounded-md disabled:bg-gray-100 disabled:cursor-not-allowed"
+                           className="flex-1 text-sm px-4 py-2 border rounded-md disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
                            placeholder="예: 15000"
                         />
                      </div>
@@ -377,7 +397,7 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent }: EditEventProp
                            value={teenPrice}
                            onChange={e => setTeenPrice(e.target.value.replace(/[^0-9]/g, ''))}
                            disabled={isFreeForAll}
-                           className="flex-1 text-sm px-4 py-2 border rounded-md disabled:bg-gray-100 disabled:cursor-not-allowed"
+                           className="flex-1 text-sm px-4 py-2 border rounded-md disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
                            placeholder="예: 15000"
                         />
                      </div>
@@ -388,7 +408,7 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent }: EditEventProp
                            value={childPrice}
                            onChange={e => setChildPrice(e.target.value.replace(/[^0-9]/g, ''))}
                            disabled={isFreeForAll}
-                           className="flex-1 text-sm px-4 py-2 border rounded-md disabled:bg-gray-100 disabled:cursor-not-allowed"
+                           className="flex-1 text-sm px-4 py-2 border rounded-md disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
                            placeholder="0으로 입력 시 무료로 설정됩니다."
                         />
                      </div>
@@ -440,8 +460,12 @@ export function EditEvent({ event, isOpen, onClose, onEditEvent }: EditEventProp
                </div>
             </div>
          }
-         buttonTitle="수정하기"
-         callback={handleEdit}
+         leftTitle="삭제하기"
+         rightTitle="수정하기"
+         leftCallback={handleDelete}
+         rightCallback={handleEdit}
+         closeOnLeft={false}
+         closeOnRight={false}
       />
    );
 }

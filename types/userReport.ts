@@ -41,7 +41,9 @@ export interface EventData {
    content_id?: number;
    title: string;
    start_date: string;
+   start_time?: string;
    end_date: string;
+   end_time?: string;
    address?: string;
    address2?: string;
    area_code?: string;
@@ -63,6 +65,7 @@ export interface EventData {
    created_at?: string;
    updated_at?: string;
    event_images?: EventImage[];
+   organizer?: string;
 }
 
 export interface EventDisplayData {
@@ -76,9 +79,19 @@ export interface EventDisplayData {
    state: string;
 }
 export interface NoticeData {
-   name: string;
-   add_date: string;
-   edit_date: string;
-   top_fixed: boolean;
+   id?: number;
+   title: string;
+   content: string;
+   created_at: string;
+   updated_at: string;
+   is_top_fixed: boolean;
    category: string;
+}
+
+export interface NoticeDisplayData {
+   id: number;
+   category: string;
+   title: string;
+   created_at: string;
+   is_top_fixed: boolean;
 }
