@@ -29,6 +29,7 @@ export const RouteSearchBar = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const addOrUpdatePlace = useSearchStore((state) => state.addOrUpdatePlace);
+  const places = useSearchStore((state) => state.places);
 
   const debouncedFetchSuggestions = useCallback(async (query: string) => {
     try {
@@ -118,6 +119,24 @@ export const RouteSearchBar = ({
       document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [handleOutsideClick]);
+
+  useEffect(() => {
+    const selectedPlace = places.find((p) => p.order === order);
+    if (selectedPlace) {
+      if (inputValue !== selectedPlace.name) {
+        setInputValue(selectedPlace.name);
+      }
+      setSuggestions([]);
+      setShowSuggestions(false);
+      setIsPlaceSelected(true);
+      return;
+    }
+
+    if (isPlaceSelected) {
+      setInputValue("");
+      setIsPlaceSelected(false);
+    }
+  }, [places, order, inputValue, isPlaceSelected]);
 
   return (
     <div

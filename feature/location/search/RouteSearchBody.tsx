@@ -250,11 +250,40 @@ export const RouteSearchBody = ({}: {}) => {
 
       <div className="flex flex-col gap-2">
         {isAfterSearching ? (
-          paths?.result?.path?.map((path, index) => (
+          paths?.result?.path?.map((path, index) => {
+            const titleText =
+              index === 0
+                ? "최적"
+                : path.pathType === 1
+                ? "지하철"
+                : path.pathType === 2
+                ? "버스"
+                : path.pathType === 3
+                ? "지하철+버스"
+                : path.pathType === 11
+                ? "기차"
+                : path.pathType === 12
+                ? "버스"
+                : path.pathType === 20
+                ? "시외/고속버스"
+                : "상세 경로";
+
+            const title =
+              index === 0 ? (
+                <span className="text-primary">{titleText}</span>
+              ) : (
+                titleText
+              );
+
+            return (
             <RouteDetailPopup
               key={`popup-${index}`}
               open={openIndex === index}
               onOpenChange={(isOpen) => setOpenIndex(isOpen ? index : null)}
+              title={title}
+              path={path}
+              fromName={places.find((p) => p.order === 1)?.name ?? ""}
+              toName={places.find((p) => p.order === places.length)?.name ?? ""}
             >
               <RouteSearchItem
                 key={index}
@@ -276,7 +305,8 @@ export const RouteSearchBody = ({}: {}) => {
                 }}
               />
             </RouteDetailPopup>
-          ))
+            );
+          })
         ) : (
           <>
             {histories.length === 0 ? (

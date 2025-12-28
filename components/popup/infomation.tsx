@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
  * @typedef {object} InfomationPopupProps
  * @property {string} className - 팝업의 전체에 적용하고 싶은 style을 받는 변수
  * @property {ReactNode} dialogTrigger - 팝업창을 열기 위한 트리거 컴포넌트입니다. (예: <Button>보기</Button>)
- * @property {string} title - 팝업창의 제목입니다.
+ * @property {ReactNode} title - 팝업창의 제목으로 경로 상세에서 쓰이는 파란 글자 표현을 위해 ReactNode로 받습니다.
  * @property {ReactNode} body - 팝업창의 본문 내용입니다. ReactNode 타입으로 다양한 컴포넌트를 전달할 수 있습니다.
  */
 
@@ -41,7 +41,7 @@ export const InfomationPopup = ({
 }: {
   className?: string;
   dialogTrigger: ReactNode; //팝업창 오픈 버튼이자 팝업창 오픈 전의 화면에 보여질 컴포넌트
-  title: string; //팝업창 제목 (좌상단 가장 큰 글자)
+  title: ReactNode; //팝업창 제목 (좌상단 가장 큰 글자)
   body: ReactNode; //팝업창 바디에 들어갈 컴포넌트
   hideOverlay?: boolean;
   position?: "center" | "top-left" | "top-right";
@@ -59,7 +59,7 @@ export const InfomationPopup = ({
       <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>
       <DialogContent
         className={cn(
-          "flex flex-col bg-white max-w-none p-4 gap-4",
+          "flex flex-col bg-white max-w-none p-4 gap-4 rounded-2xl",
           className ? "lg:max-w-none sm:max-w-none max-w-none " + className : ""
         )}
         hideOverlay={hideOverlay}
