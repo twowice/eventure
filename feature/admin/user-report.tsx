@@ -8,7 +8,6 @@ import { TableComponent } from './table';
 import { EllipsisPagination } from '@/components/pagination/pagination';
 import { UserReportDialog } from './UserReportDialog';
 import { UserReportData } from '@/types/userReport';
-import { allUserReports } from '@/dummy/admin';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/lib/clientSupabase';
 
@@ -207,23 +206,22 @@ export default function UserReport() {
                   />
                </div>
             </div>
-
-            <div className="flex gap-4 text-base font-normal items-center xl:flex-1">
-               <div className="w-16 shrink-0">분류</div>
-               <div className="flex-1">
-                  <ComboboxComponent
-                     options={[
-                        { value: 'user_name', label: '사용자 명' },
-                        { value: 'phone_number', label: '전화번호' },
-                        { value: 'reporter_name', label: '신고자 명' },
-                     ]}
-                     className="w-full"
-                     value={sortFilter}
-                     onValueChange={setSortFilter}
-                  />
+            <div className="flex flex-col xl:flex-row gap-4">
+               <div className="flex gap-4 text-base font-normal items-center xl:flex-1">
+                  <div className="w-16 shrink-0">분류</div>
+                  <div className="flex-1">
+                     <ComboboxComponent
+                        options={[
+                           { value: 'user_name', label: '사용자 명' },
+                           { value: 'phone_number', label: '전화번호' },
+                           { value: 'reporter_name', label: '신고자 명' },
+                        ]}
+                        className="w-full"
+                        value={sortFilter}
+                        onValueChange={setSortFilter}
+                     />
+                  </div>
                </div>
-            </div>
-            <div className="flex flex-col gap-4 xl:flex-row">
                <div className="flex gap-4 text-base font-normal items-center xl:flex-1">
                   <div className="w-16 shrink-0">검색</div>
                   <div className="flex-1">
@@ -242,68 +240,70 @@ export default function UserReport() {
             </div>
          </div>
 
-         <div className="flex-1 min-h-0">
-            <TableComponent<UserReportData>
-               columns={[
-                  { key: 'user_name', label: '사용자 명', width: 'w-[100px]' },
-                  { key: 'phone_number', label: '전화번호', width: 'w-[130px]' },
-                  { key: 'report_date', label: '신고 접수날짜', width: 'w-[120px]' },
-                  { key: 'sanction_period', label: '제재 기간', width: 'w-[170px]' },
-                  {
-                     key: 'sanction_type',
-                     label: '제재 유형',
-                     width: 'w-[120px]',
-                     render: value => (
-                        <span
-                           className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              value === '7일 계정정지'
-                                 ? 'bg-red-100 text-red-800'
-                                 : value === '14일 계정정지'
-                                   ? 'bg-orange-100 text-orange-800'
-                                   : value === '30일 계정정지'
-                                     ? 'bg-yellow-100 text-yellow-800'
-                                     : value === '영구 계정정지'
-                                       ? 'bg-purple-100 text-purple-800'
-                                       : 'bg-gray-100 text-gray-800'
-                           }`}
-                        >
-                           {value}
-                        </span>
-                     ),
-                  },
-                  { key: 'reporter_name', label: '신고자 명', width: 'w-[100px]' },
-                  {
-                     key: 'report_category',
-                     label: '카테고리',
-                     width: 'w-[120px]',
-                     render: value => (
-                        <span
-                           className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              value === '부정적인 언어'
-                                 ? 'bg-red-100 text-red-800'
-                                 : value === '도배'
-                                   ? 'bg-orange-100 text-orange-800'
-                                   : value === '광고'
-                                     ? 'bg-yellow-100 text-yellow-800'
-                                     : value === '사기'
-                                       ? 'bg-purple-100 text-purple-800'
-                                       : 'bg-gray-100 text-gray-800'
-                           }`}
-                        >
-                           {value}
-                        </span>
-                     ),
-                  },
-                  {
-                     key: 'is_processed',
-                     label: '제재관리',
-                     width: 'w-[110px]',
-                     render: (value, row) => <UserReportDialog reportData={row} type="user-report" />,
-                  },
-               ]}
-               data={currentData}
-               itemsPerPage={itemsPerPage}
-            />
+         <div className="flex-1 min-h-0 relative overflow-hidden">
+            <div className="absolute inset-0 overflow-auto">
+               <TableComponent<UserReportData>
+                  columns={[
+                     { key: 'user_name', label: '사용자 명', width: 'w-[100px]' },
+                     { key: 'phone_number', label: '전화번호', width: 'w-[130px]' },
+                     { key: 'report_date', label: '신고 접수날짜', width: 'w-[120px]' },
+                     { key: 'sanction_period', label: '제재 기간', width: 'w-[170px]' },
+                     {
+                        key: 'sanction_type',
+                        label: '제재 유형',
+                        width: 'w-[120px]',
+                        render: value => (
+                           <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                 value === '7일 계정정지'
+                                    ? 'bg-red-100 text-red-800'
+                                    : value === '14일 계정정지'
+                                      ? 'bg-orange-100 text-orange-800'
+                                      : value === '30일 계정정지'
+                                        ? 'bg-yellow-100 text-yellow-800'
+                                        : value === '영구 계정정지'
+                                          ? 'bg-purple-100 text-purple-800'
+                                          : 'bg-gray-100 text-gray-800'
+                              }`}
+                           >
+                              {value}
+                           </span>
+                        ),
+                     },
+                     { key: 'reporter_name', label: '신고자 명', width: 'w-[100px]' },
+                     {
+                        key: 'report_category',
+                        label: '카테고리',
+                        width: 'w-[120px]',
+                        render: value => (
+                           <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                 value === '부정적인 언어'
+                                    ? 'bg-red-100 text-red-800'
+                                    : value === '도배'
+                                      ? 'bg-orange-100 text-orange-800'
+                                      : value === '광고'
+                                        ? 'bg-yellow-100 text-yellow-800'
+                                        : value === '사기'
+                                          ? 'bg-purple-100 text-purple-800'
+                                          : 'bg-gray-100 text-gray-800'
+                              }`}
+                           >
+                              {value}
+                           </span>
+                        ),
+                     },
+                     {
+                        key: 'is_processed',
+                        label: '제재관리',
+                        width: 'w-[110px]',
+                        render: (value, row) => <UserReportDialog reportData={row} type="user-report" />,
+                     },
+                  ]}
+                  data={currentData}
+                  itemsPerPage={itemsPerPage}
+               />
+            </div>
          </div>
 
          <div className="flex justify-center shrink-0 items-center">

@@ -172,8 +172,6 @@ export default function PartyReport() {
                      />
                   </div>
                </div>
-            </div>
-            <div className="flex flex-col gap-4 xl:flex-row">
                <div className="flex gap-4 text-base font-normal items-center xl:flex-1">
                   <div className="w-16 shrink-0">신고 날짜</div>
                   <div className="flex-1">
@@ -185,7 +183,8 @@ export default function PartyReport() {
                      />
                   </div>
                </div>
-
+            </div>
+            <div className="flex flex-col gap-4 xl:flex-row">
                <div className="flex gap-4 text-base font-normal items-center xl:flex-1">
                   <div className="w-16 shrink-0">분류</div>
                   <div className="flex-1">
@@ -201,23 +200,21 @@ export default function PartyReport() {
                      />
                   </div>
                </div>
-            </div>
-            <div className="flex flex-col gap-4 xl:flex-row">
                <div className="flex gap-4 text-base font-normal items-center xl:flex-1">
                   <div className="w-16 shrink-0">검색</div>
                   <div className="flex-1">
                      <SearchBar value={searchText} onChange={setSearchText} />
                   </div>
                </div>
+            </div>
 
-               <div className="flex gap-4 justify-end xl:flex-1">
-                  <Button variant={'secondary'} size={'lg'} onClick={handleReset}>
-                     초기화
-                  </Button>
-                  <Button variant={'default'} size={'lg'} onClick={handleSearch}>
-                     검색
-                  </Button>
-               </div>
+            <div className="flex gap-4 justify-end xl:flex-1">
+               <Button variant={'secondary'} size={'lg'} onClick={handleReset}>
+                  초기화
+               </Button>
+               <Button variant={'default'} size={'lg'} onClick={handleSearch}>
+                  검색
+               </Button>
             </div>
          </div>
 

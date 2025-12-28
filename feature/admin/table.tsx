@@ -83,17 +83,11 @@ export function TableComponent<T extends Record<string, any>>({
             <TableBody>
                {data.length === 0 ? (
                   // 데이터가 하나도 없을 때
-                  <>
-                     {Array.from({ length: itemsPerPage }).map((_, index) => (
-                        <TableRow key={`empty-all-${index}`} style={{ height: rowHeight }}>
-                           <TableCell colSpan={columns.length} className="text-center align-middle">
-                              {index === Math.floor(itemsPerPage / 2) && (
-                                 <p className="text-muted-foreground">{emptyMessage}</p>
-                              )}
-                           </TableCell>
-                        </TableRow>
-                     ))}
-                  </>
+                  <TableRow style={{ height: `calc(${rowHeight} * ${itemsPerPage})` }}>
+                     <TableCell colSpan={columns.length} className="text-center align-middle">
+                        <p className="text-muted-foreground text-lg">{emptyMessage}</p>
+                     </TableCell>
+                  </TableRow>
                ) : (
                   <>
                      {/* 실제 데이터 */}

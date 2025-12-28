@@ -5,12 +5,42 @@ import Event from '@/feature/admin/event';
 import Notice from '@/feature/admin/notice';
 import PartyReport from '@/feature/admin/party-report';
 import UserReport from '@/feature/admin/user-report';
-import { useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 type MenuType = 'event' | 'notice' | 'user-report' | 'party-report' | null;
 
 export default function Admin() {
+   const router = useRouter();
+   const { data: session, status } = useSession();
    const [selectedMenu, setSelectedMenu] = useState<MenuType>('event');
+
+   useEffect(() => {
+      //로딩 시 대기
+      if (status === 'loading') return;
+
+      //로그인 되어있지 않음
+      if (!session) {
+         router.push('/loginpage');
+         return;
+      }
+
+      // 관리자 아님
+      if (session.user.role !== 'admin') {
+         router.push('/');
+         return;
+      }
+   }, [session, status, router]);
+
+   // 로딩중 또는 권한 확인
+   if (status === 'loading' || !session || session.user.role !== 'admin') {
+      return (
+         <div className="flex items-center justify-center h-screen">
+            <p>로딩 중...</p>
+         </div>
+      );
+   }
    return (
       <div className="h-screen w-screen flex overflow-hidden">
          <div className="flex flex-col w-60 max-w-120 bg-primary/20 h-full p-4 gap-4">
