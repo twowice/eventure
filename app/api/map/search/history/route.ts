@@ -92,6 +92,7 @@ export async function GET(request: NextRequest) {
         `
         id,
         created_at,
+        status,
         departure_name,
         departure_latitude,
         departure_longitude,
@@ -105,6 +106,7 @@ export async function GET(request: NextRequest) {
       `
       )
       .eq("user_id", session.user.id)
+      .eq("status", "active")
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 

@@ -21,6 +21,10 @@ import {
   drawOdsayStyledPolylinesWithTransfer,
   type DrawResult,
 } from "@/utills/route/routePolyLineDrawer";
+import {
+  markerDepartureDrawer,
+  markerDestinationDrawer,
+} from "@/utills/route/routeMarkerDrawer";
 import { panelstore } from "@/stores/panelstore";
 import type { OdsayTranspath } from "@/app/api/map/odsay/odsay";
 import {
@@ -34,6 +38,7 @@ export const RouteSearchBody = ({}: {}) => {
   const { map, isMapScriptLoaded } = useMapStore();
   const drawResultRef = useRef<DrawResult | null>(null);
   const fallbackPolylinesRef = useRef<naver.maps.Polyline[]>([]);
+  const markersRef = useRef<Map<number, naver.maps.Marker>>(new Map());
   const openpanel = panelstore((state) => state.openpanel);
 
   const clearRoutePolylines = () => {
@@ -80,6 +85,42 @@ export const RouteSearchBody = ({}: {}) => {
   useEffect(() => {
     void loadHistories();
   }, [loadHistories]);
+
+  useEffect(() => {
+    if (!map || !isMapScriptLoaded) return;
+
+    const nextKeys = new Set<number>();
+    places.forEach((place) => {
+      nextKeys.add(place.order);
+      const existingMarker = markersRef.current.get(place.order);
+      const position = new naver.maps.LatLng(place.lat, place.lng);
+
+      if (existingMarker) {
+        existingMarker.setPosition(position);
+        existingMarker.setMap(map);
+        return;
+      }
+
+      const marker =
+        place.order === 1
+          ? markerDepartureDrawer(map, place.lat, place.lng)
+          : markerDestinationDrawer(map, place.lat, place.lng);
+      markersRef.current.set(place.order, marker);
+    });
+
+    markersRef.current.forEach((marker, key) => {
+      if (nextKeys.has(key)) return;
+      marker.setMap(null);
+      markersRef.current.delete(key);
+    });
+  }, [places, map, isMapScriptLoaded]);
+
+  useEffect(() => {
+    return () => {
+      markersRef.current.forEach((marker) => marker.setMap(null));
+      markersRef.current.clear();
+    };
+  }, []);
 
   const search = async () => {
     if (places.length < 2) {
