@@ -1,56 +1,53 @@
+// app/api/user/updateprofile/route.ts
+import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { NextRequest, NextResponse } from 'next/server'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export async function POST(request: NextRequest) {
-  console.log('=== API 시작 ===')
-  
+export async function POST(request: Request) {
   try {
     const body = await request.json()
-    console.log('1. 받은 데이터:', body)
-    
     const { userId, name, email, gender, phone, birthDate } = body
-    console.log('2. 파싱된 데이터:', { userId, name, email, gender, phone, birthDate })
 
-    const updateData = {
-      name,
-      email,
-      gender,
-      phone,
-      birth_date: birthDate,
-      is_profile_complete: true,
+    if (!userId) {
+      return NextResponse.json(
+        { error: '사용자 ID가 필요합니다.' },
+        { status: 400 }
+      )
     }
-    console.log('3. 업데이트할 데이터:', updateData)
 
+    // ⭐ UUID로 직접 업데이트
     const { data, error } = await supabase
       .from('users')
-      .update(updateData)
-      .eq('id', userId)
+      .update({
+        name,
+        email,
+        gender,
+        phone: phone.replace(/-/g, ''),
+        birth_date: birthDate,
+        is_profile_complete: true,
+      })
+      .eq('id', userId)  // ⭐ UUID 사용
       .select()
-
-    console.log('4. Supabase 응답 데이터:', data)
-    console.log('5. Supabase 에러:', error)
+      .single()
 
     if (error) {
-      console.error('❌ Supabase 에러 발생:', error)
-      return NextResponse.json({ 
-        error: error.message,
-        details: error 
-      }, { status: 500 })
+      console.error('Update error:', error)
+      return NextResponse.json(
+        { error: '프로필 업데이트 실패', details: error.message },
+        { status: 500 }
+      )
     }
 
-    console.log('✅ 업데이트 성공')
     return NextResponse.json({ success: true, data })
-    
   } catch (error) {
-    console.error('❌ API 예외 발생:', error)
-    return NextResponse.json({ 
-      error: error instanceof Error ? error.message : 'Internal server error',
-      stack: error instanceof Error ? error.stack : undefined
-    }, { status: 500 })
+    console.error('Server error:', error)
+    return NextResponse.json(
+      { error: '서버 오류' },
+      { status: 500 }
+    )
   }
 }
