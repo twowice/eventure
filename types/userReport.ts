@@ -50,9 +50,8 @@ export interface EventData {
    content_id?: number;
    title: string;
    start_date: string;
-   start_time?: string;
    end_date: string;
-   end_time?: string;
+   playtime?: string;
    address?: string;
    address2?: string;
    area_code?: string;

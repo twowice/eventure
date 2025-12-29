@@ -12,38 +12,39 @@ import { useEffect, useState } from 'react';
 type MenuType = 'event' | 'notice' | 'user-report' | 'party-report' | null;
 
 export default function Admin() {
-   const router = useRouter();
-   const { data: session, status } = useSession();
+   // const router = useRouter();
+   // const { data: session, status } = useSession();
    const [selectedMenu, setSelectedMenu] = useState<MenuType>('event');
+   const [hasNotification, setHasNotification] = useState(false);
 
-   useEffect(() => {
-      //로딩 시 대기
-      if (status === 'loading') return;
+   // useEffect(() => {
+   //    //로딩 시 대기
+   //    if (status === 'loading') return;
 
-      //로그인 되어있지 않음
-      if (!session) {
-         router.push('/loginpage');
-         return;
-      }
+   //    //로그인 되어있지 않음
+   //    if (!session) {
+   //       router.push('/loginpage');
+   //       return;
+   //    }
 
-      // 관리자 아님
-      if (session.user.role !== 'admin') {
-         router.push('/');
-         return;
-      }
-   }, [session, status, router]);
+   //    // 관리자 아님
+   //    if (session.user.role !== 'admin') {
+   //       router.push('/');
+   //       return;
+   //    }
+   // }, [session, status, router]);
 
-   // 로딩중 또는 권한 확인
-   if (status === 'loading' || !session || session.user.role !== 'admin') {
-      return (
-         <div className="flex items-center justify-center h-screen">
-            <p>로딩 중...</p>
-         </div>
-      );
-   }
+   // // 로딩중 또는 권한 확인
+   // if (status === 'loading' || !session || session.user.role !== 'admin') {
+   //    return (
+   //       <div className="flex items-center justify-center h-screen">
+   //          <p>로딩 중...</p>
+   //       </div>
+   //    );
+   // }
    return (
       <div className="h-screen w-screen flex overflow-hidden">
-         <div className="flex flex-col w-60 max-w-120 bg-primary/20 h-full p-4 gap-4">
+         <div className="flex flex-col w-80 max-w-130 bg-primary/20 h-full p-6 gap-8">
             <div className="flex justify-between">
                <div className="flex gap-3">
                   <div className="flex flex-col justify-center items-center">
@@ -66,16 +67,19 @@ export default function Admin() {
                      </svg>
                      <h1 className="text-xl font-extrabold text-[#007DE4] tracking-tight">Myway</h1>
                   </div>
-                  <div>
+                  {/* <div>
                      <div className="font-semibold text-base">Myway</div>
                      <div className="font-regular text-base">Management</div>
-                  </div>
+                  </div> */}
                </div>
-               <Icon36 name="alert" />
+               <div className="relative">
+                  <Icon36 name="alert" />
+                  {hasNotification && <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>}
+               </div>
             </div>
-            <div className="flex flex-col gap-7">
+            <div className="flex flex-col gap-10">
                <div className="flex flex-col gap-4">
-                  <div className="text-2xl">이벤트 및 공지사항</div>
+                  <div className="text-xl">이벤트 및 공지사항</div>
                   <div>
                      <button
                         onClick={() => setSelectedMenu('event')}
@@ -94,7 +98,7 @@ export default function Admin() {
                   </div>
                </div>
                <div className="flex flex-col gap-4">
-                  <div className="text-2xl">신고</div>
+                  <div className="text-xl">신고</div>
                   <div>
                      <button
                         onClick={() => setSelectedMenu('user-report')}

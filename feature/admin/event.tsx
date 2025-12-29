@@ -27,7 +27,29 @@ export default function Event() {
    //초기 데이터 로드
    useEffect(() => {
       fetchEvents();
+
+      // 실시간 구독
+      const channel = supabase
+         .channel('events-changes')
+         .on(
+            'postgres_changes',
+            {
+               event: '*',
+               schema: 'public',
+               table: 'events',
+            },
+            payload => {
+               console.log('이벤트 변경 감지:', payload);
+               fetchEvents();
+            },
+         )
+         .subscribe();
+
+      return () => {
+         supabase.removeChannel(channel);
+      };
    }, []);
+
    const fetchEvents = async () => {
       try {
          setLoading(true);
@@ -61,10 +83,9 @@ export default function Event() {
       }
 
       let operatingHours = '-';
-      if (event.start_time || event.end_time) {
-         const startTime = event.start_time || '00:00';
-         const endTime = event.end_time || '23:59';
-         operatingHours = `${startTime} ~ ${endTime}`;
+      if (event.playtime) {
+         const playTime = event.playtime || '00:00';
+         operatingHours = `${playTime}`;
       }
 
       return {
@@ -150,14 +171,14 @@ export default function Event() {
          const eventData: Partial<EventData> = {
             title: formData.eventName,
             start_date: formData.startDate,
-            start_time: formData.startTime,
+            playtime: formData.playTime,
             end_date: formData.endDate,
-            end_time: formData.endTime,
             address: formData.roadAddress,
             address2: formData.detailAddress,
             homepage: formData.eventHomepage,
             overview: formData.eventIntro,
             price: formData.isFreeForAll ? 0 : Number(formData.adultPrice) || 0,
+            organizer: formData.organizer || '',
             content_id: Date.now(),
          };
          const { data: newEvent, error: eventError } = await supabase
@@ -212,14 +233,14 @@ export default function Event() {
          const eventData: Partial<EventData> = {
             title: formData.eventName,
             start_date: formData.startDate,
-            start_time: formData.startTime,
+            playtime: formData.playTime,
             end_date: formData.endDate,
-            end_time: formData.endTime,
             address: formData.roadAddress,
             address2: formData.detailAddress,
             homepage: formData.eventHomepage,
             overview: formData.eventIntro,
             price: formData.isFreeForAll ? 0 : Number(formData.adultPrice) || 0,
+            organizer: formData.orgainzer || '',
          };
 
          const { error: eventError } = await supabase.from('events').update(eventData).eq('id', originalEvent.id);
@@ -241,22 +262,14 @@ export default function Event() {
             const { error: imageError } = await supabase.from('event_images').insert(imageData);
 
             if (imageError) throw imageError;
+         } else {
+            //이미지 없으면 기존 이미지 삭제
+            await supabase.from('event_images').delete().eq('event_id', originalEvent.id);
          }
 
-         // 업데이트된 데이터 다시 조회
-         const { data: updatedEvent } = await supabase
-            .from('events')
-            .select(
-               `
-               *,
-               event_images (*)
-            `,
-            )
-            .eq('id', originalEvent.id)
-            .single();
-
-         // 로컬 상태 업데이트
-         setEvents(prev => prev.map(event => (event.id === originalEvent.id ? updatedEvent : event)));
+         // 전체 목록 다시 조회
+         fetchEvents();
+         alert('이벤트가 수정되었습니다.');
       } catch (error) {
          console.error('이벤트 수정 실패:', error);
          alert('이벤트 수정에 실패했습니다.');
@@ -265,6 +278,7 @@ export default function Event() {
    };
 
    const handleDeleteEvents = async (eventId: number) => {
+      if (!confirm('정말 삭제하시겠습니까?')) return;
       try {
          const { error: eventError } = await supabase.from('events').delete().eq('id', eventId);
 
@@ -277,6 +291,8 @@ export default function Event() {
          if (currentPage > newTotalPages && newTotalPages > 0) {
             setCurrentPage(newTotalPages);
          }
+
+         alert('이벤트가 삭제되었습니다.');
       } catch (error) {
          console.error('이벤트 삭제 실패:', error);
          alert('이벤트 삭제에 실패했습니다.');
