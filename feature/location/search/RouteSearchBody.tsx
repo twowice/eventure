@@ -21,11 +21,16 @@ import {
   drawOdsayStyledPolylinesWithTransfer,
   type DrawResult,
 } from "@/utills/route/routePolyLineDrawer";
+import {
+  markerDepartureDrawer,
+  markerDestinationDrawer,
+} from "@/utills/route/routeMarkerDrawer";
 import { panelstore } from "@/stores/panelstore";
 import type { OdsayTranspath } from "@/app/api/map/odsay/odsay";
 import {
   fetchRouteSearchHistories,
   type RouteSearchHistory,
+  deleteRouteSearchHistory,
 } from "@/lib/map/history";
 
 export const RouteSearchBody = ({}: {}) => {
@@ -34,6 +39,7 @@ export const RouteSearchBody = ({}: {}) => {
   const { map, isMapScriptLoaded } = useMapStore();
   const drawResultRef = useRef<DrawResult | null>(null);
   const fallbackPolylinesRef = useRef<naver.maps.Polyline[]>([]);
+  const markersRef = useRef<Map<number, naver.maps.Marker>>(new Map());
   const openpanel = panelstore((state) => state.openpanel);
 
   const clearRoutePolylines = () => {
@@ -81,6 +87,42 @@ export const RouteSearchBody = ({}: {}) => {
     void loadHistories();
   }, [loadHistories]);
 
+  useEffect(() => {
+    if (!map || !isMapScriptLoaded) return;
+
+    const nextKeys = new Set<number>();
+    places.forEach((place) => {
+      nextKeys.add(place.order);
+      const existingMarker = markersRef.current.get(place.order);
+      const position = new naver.maps.LatLng(place.lat, place.lng);
+
+      if (existingMarker) {
+        existingMarker.setPosition(position);
+        existingMarker.setMap(map);
+        return;
+      }
+
+      const marker =
+        place.order === 1
+          ? markerDepartureDrawer(map, place.lat, place.lng)
+          : markerDestinationDrawer(map, place.lat, place.lng);
+      markersRef.current.set(place.order, marker);
+    });
+
+    markersRef.current.forEach((marker, key) => {
+      if (nextKeys.has(key)) return;
+      marker.setMap(null);
+      markersRef.current.delete(key);
+    });
+  }, [places, map, isMapScriptLoaded]);
+
+  useEffect(() => {
+    return () => {
+      markersRef.current.forEach((marker) => marker.setMap(null));
+      markersRef.current.clear();
+    };
+  }, []);
+
   const search = async () => {
     if (places.length < 2) {
       alert("출발지와 목적지를 모두 선택해주세요.");
@@ -117,9 +159,19 @@ export const RouteSearchBody = ({}: {}) => {
           departure_name: startPlace.name,
           departure_latitude: startPlace.lat,
           departure_longitude: startPlace.lng,
+          departure_address: startPlace.address,
+          departure_road_address: startPlace.roadAddress,
+          departure_category: startPlace.category,
+          departure_telephone: startPlace.telephone ?? null,
+          departure_link: startPlace.link ?? null,
           destination_name: endPlace.name,
           destination_latitude: endPlace.lat,
           destination_longitude: endPlace.lng,
+          destination_address: endPlace.address,
+          destination_road_address: endPlace.roadAddress,
+          destination_category: endPlace.category,
+          destination_telephone: endPlace.telephone ?? null,
+          destination_link: endPlace.link ?? null,
           total_time_seconds: Number.isFinite(totalTimeSeconds)
             ? totalTimeSeconds
             : null,
@@ -147,14 +199,22 @@ export const RouteSearchBody = ({}: {}) => {
     const startPlace = {
       order: 1,
       name: history.departure_name,
-      address: "",
+      address: history.departure_address ?? "",
+      roadAddress: history.departure_road_address ?? "",
+      category: history.departure_category ?? "",
+      telephone: history.departure_telephone ?? undefined,
+      link: history.departure_link ?? undefined,
       lat: history.departure_latitude,
       lng: history.departure_longitude,
     };
     const endPlace = {
       order: 2,
       name: history.destination_name,
-      address: "",
+      address: history.destination_address ?? "",
+      roadAddress: history.destination_road_address ?? "",
+      category: history.destination_category ?? "",
+      telephone: history.destination_telephone ?? undefined,
+      link: history.destination_link ?? undefined,
       lat: history.destination_latitude,
       lng: history.destination_longitude,
     };
@@ -165,6 +225,18 @@ export const RouteSearchBody = ({}: {}) => {
     setIsDuringSearching(false);
     setPaths(history.raw_response as OdsayTranspath);
   };
+
+  const handleDeleteHistory = useCallback(
+    async (id: number) => {
+      try {
+        await deleteRouteSearchHistory(id);
+        setHistories((prev) => prev.filter((history) => history.id !== id));
+      } catch (error: any) {
+        console.warn("검색 기록 삭제 실패:", error?.message);
+      }
+    },
+    []
+  );
 
   const normalizeMapObject = (mapObj: string) => {
     const trimmed = mapObj.trim();
@@ -321,6 +393,7 @@ export const RouteSearchBody = ({}: {}) => {
                   departure={history.departure_name}
                   destination={history.destination_name}
                   onSelect={() => applyHistory(history)}
+                  onDelete={() => handleDeleteHistory(history.id)}
                 />
               ))
             )}
