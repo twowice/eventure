@@ -5,54 +5,14 @@ import Event from '@/feature/admin/event';
 import Notice from '@/feature/admin/notice';
 import PartyReport from '@/feature/admin/party-report';
 import UserReport from '@/feature/admin/user-report';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 type MenuType = 'event' | 'notice' | 'user-report' | 'party-report' | null;
 
 export default function Admin() {
-   // const router = useRouter();
-   // const { data: session, status } = useSession();
    const [selectedMenu, setSelectedMenu] = useState<MenuType>('event');
    const [hasNotification, setHasNotification] = useState(false);
-   // const [isAuthorized, setIsAuthoized] = useState(false);
 
-   // useEffect(() => {
-   //    //로딩 시 대기
-   //    if (status === 'loading') return;
-
-   //    //로그인 되어있지 않음
-   //    if (!session) {
-   //       router.push('/loginpage');
-   //       return;
-   //    }
-
-   //    // 관리자 아님
-   //    if (session.user.role !== 'admin') {
-   //       alert('관리자만 접근할 수 있습니다.');
-   //       router.push('/');
-   //       return;
-   //    }
-
-   //    // 프로필 미완성
-   //    if (!session?.user.isProfileComplete) {
-   //       router.push('/loginpage/additionalinfo');
-   //    }
-
-   //    // 모든 검증 통과
-   //    setIsAuthoized(true);
-   // }, [session, status, router]);
-
-   // // 로딩중 또는 권한 확인
-   // if (status === 'loading' || !isAuthorized) {
-   //    return (
-   //       <div className="flex items-center justify-center h-screen">
-   //          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-   //          <p>로딩 중...</p>
-   //       </div>
-   //    );
-   // }
    return (
       <div className="h-screen w-screen flex overflow-hidden">
          <div className="flex flex-col w-80 max-w-130 bg-primary/20 h-full p-6 gap-8">
