@@ -32,9 +32,9 @@ import {
   type RouteSearchHistory,
   deleteRouteSearchHistory,
 } from "@/lib/map/history";
-import { createSharedRoute } from "@/lib/map/sharedRoutes";
+import { createSharedRoute, fetchSharedRoute } from "@/lib/map/sharedRoutes";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/contexts/ToastContext";
 import { TwoFunctionPopup } from "@/components/popup/twofunction";
 
@@ -50,6 +50,8 @@ export const RouteSearchBody = ({}: {}) => {
   const openpanel = panelstore((state) => state.openpanel);
   const { data: session } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const sharedCode = searchParams.get("shared");
   const { showToast } = useToast();
 
   const clearRoutePolylines = () => {
@@ -96,6 +98,72 @@ export const RouteSearchBody = ({}: {}) => {
   useEffect(() => {
     void loadHistories();
   }, [loadHistories]);
+
+  useEffect(() => {
+    if (!sharedCode) return;
+
+    let cancelled = false;
+
+    const loadSharedRoute = async () => {
+      try {
+        const data = await fetchSharedRoute(sharedCode);
+        if (cancelled) return;
+
+        const startPlace = {
+          order: 1,
+          name: data.departure.name,
+          address: data.departure.address ?? "",
+          roadAddress: data.departure.roadAddress ?? "",
+          category: data.departure.category ?? "",
+          telephone: data.departure.telephone ?? undefined,
+          link: data.departure.link ?? undefined,
+          lat: data.departure.latitude,
+          lng: data.departure.longitude,
+        };
+        const endPlace = {
+          order: 2,
+          name: data.destination.name,
+          address: data.destination.address ?? "",
+          roadAddress: data.destination.roadAddress ?? "",
+          category: data.destination.category ?? "",
+          telephone: data.destination.telephone ?? undefined,
+          link: data.destination.link ?? undefined,
+          lat: data.destination.latitude,
+          lng: data.destination.longitude,
+        };
+
+        setAllPlaces([startPlace, endPlace]);
+        setRoutePoints([startPlace, endPlace]);
+        setPaths(data.rawResponse as OdsayTranspath);
+        setIsAfterSearching(true);
+        setIsDuringSearching(false);
+
+        if (session?.user?.id && session.user.id === data.ownerId) {
+          setShareHistoryId(data.searchHistoryId);
+        } else {
+          setShareHistoryId(null);
+        }
+      } catch (error: any) {
+        console.warn("공유 경로 조회 실패:", error?.message);
+        showToast(error?.message ?? "공유 경로를 불러오지 못했어.");
+      }
+    };
+
+    void loadSharedRoute();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    sharedCode,
+    session?.user?.id,
+    setAllPlaces,
+    setIsAfterSearching,
+    setIsDuringSearching,
+    setPaths,
+    setRoutePoints,
+    showToast,
+  ]);
 
   useEffect(() => {
     if (!map || !isMapScriptLoaded) return;

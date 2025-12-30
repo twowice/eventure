@@ -1,12 +1,5 @@
-export type CreateSharedRoutePayload = {
-  searchHistoryId: number;
-  sharedPathIndex: number;
-};
+import { CreateSharedRoutePayload, CreateSharedRouteResponse, SharedRouteResponse } from "@/types/map/sharedRoute";
 
-export type CreateSharedRouteResponse = {
-  shareCode: string;
-  shareUrl: string;
-};
 
 export async function createSharedRoute(
   payload: CreateSharedRoutePayload
@@ -20,6 +13,19 @@ export async function createSharedRoute(
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
     throw new Error(data?.message ?? "공유 경로 생성 실패");
+  }
+
+  return response.json();
+}
+
+export async function fetchSharedRoute(
+  shareCode: string
+): Promise<SharedRouteResponse> {
+  const response = await fetch(`/api/shared-routes/${shareCode}`);
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.message ?? "공유 경로 조회 실패");
   }
 
   return response.json();

@@ -22,7 +22,7 @@ export async function GET(
 
     const { data: shared, error: sharedError } = await supabase
       .from("shared_routes")
-      .select("share_code, shared_path_index, search_history_id")
+      .select("share_code, shared_path_index, search_history_id, owner_id")
       .eq("share_code", shareCode)
       .maybeSingle();
 
@@ -104,6 +104,8 @@ export async function GET(
     return NextResponse.json({
       shareCode: shared.share_code,
       sharedPathIndex: shared.shared_path_index,
+      searchHistoryId: history.id,
+      ownerId: shared.owner_id,
       searchMode: history.search_mode,
       createdAt: history.created_at,
       departure: {
