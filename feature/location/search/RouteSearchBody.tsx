@@ -32,15 +32,32 @@ import {
   type RouteSearchHistory,
   deleteRouteSearchHistory,
 } from "@/lib/map/history";
+import { createSharedRoute, fetchSharedRoute } from "@/lib/map/sharedRoutes";
+import { useSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useToast } from "@/contexts/ToastContext";
+import { TwoFunctionPopup } from "@/components/popup/twofunction";
+import {
+  historyToPlaces,
+  sharedRouteToPlaces,
+} from "@/utills/route/historyToPlaces";
+import { placesToHistoryPayload } from "@/utills/route/placesToHistoryPayload";
 
 export const RouteSearchBody = ({}: {}) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [histories, setHistories] = useState<RouteSearchHistory[]>([]);
+  const [shareHistoryId, setShareHistoryId] = useState<number | null>(null);
+  const [isShareLoginOpen, setIsShareLoginOpen] = useState(false);
   const { map, isMapScriptLoaded } = useMapStore();
   const drawResultRef = useRef<DrawResult | null>(null);
   const fallbackPolylinesRef = useRef<naver.maps.Polyline[]>([]);
   const markersRef = useRef<Map<number, naver.maps.Marker>>(new Map());
   const openpanel = panelstore((state) => state.openpanel);
+  const { data: session } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const sharedCode = searchParams.get("shared");
+  const { showToast } = useToast();
 
   const clearRoutePolylines = () => {
     if (drawResultRef.current) {
@@ -88,6 +105,51 @@ export const RouteSearchBody = ({}: {}) => {
   }, [loadHistories]);
 
   useEffect(() => {
+    if (!sharedCode) return;
+
+    let cancelled = false;
+
+    const loadSharedRoute = async () => {
+      try {
+        const data = await fetchSharedRoute(sharedCode);
+        if (cancelled) return;
+
+        const { startPlace, endPlace } = sharedRouteToPlaces(data);
+
+        setAllPlaces([startPlace, endPlace]);
+        setRoutePoints([startPlace, endPlace]);
+        setPaths(data.rawResponse as OdsayTranspath);
+        setIsAfterSearching(true);
+        setIsDuringSearching(false);
+
+        if (session?.user?.id && session.user.id === data.ownerId) {
+          setShareHistoryId(data.searchHistoryId);
+        } else {
+          setShareHistoryId(null);
+        }
+      } catch (error: any) {
+        console.warn("공유 경로 조회 실패:", error?.message);
+        showToast(error?.message ?? "공유 경로를 불러오지 못했어.");
+      }
+    };
+
+    void loadSharedRoute();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    sharedCode,
+    session?.user?.id,
+    setAllPlaces,
+    setIsAfterSearching,
+    setIsDuringSearching,
+    setPaths,
+    setRoutePoints,
+    showToast,
+  ]);
+
+  useEffect(() => {
     if (!map || !isMapScriptLoaded) return;
 
     const nextKeys = new Set<number>();
@@ -130,6 +192,7 @@ export const RouteSearchBody = ({}: {}) => {
     }
 
     setIsDuringSearching(true);
+    setShareHistoryId(null);
     try {
       const startPlace = places.find((p) => p.order === 1);
       const endPlace = places.find((p) => p.order === places.length);
@@ -155,36 +218,29 @@ export const RouteSearchBody = ({}: {}) => {
       const mapObjectId = bestPath?.info?.mapObj ?? null;
 
       try {
-        await saveRouteSearchHistory({
-          departure_name: startPlace.name,
-          departure_latitude: startPlace.lat,
-          departure_longitude: startPlace.lng,
-          departure_address: startPlace.address,
-          departure_road_address: startPlace.roadAddress,
-          departure_category: startPlace.category,
-          departure_telephone: startPlace.telephone ?? null,
-          departure_link: startPlace.link ?? null,
-          destination_name: endPlace.name,
-          destination_latitude: endPlace.lat,
-          destination_longitude: endPlace.lng,
-          destination_address: endPlace.address,
-          destination_road_address: endPlace.roadAddress,
-          destination_category: endPlace.category,
-          destination_telephone: endPlace.telephone ?? null,
-          destination_link: endPlace.link ?? null,
-          total_time_seconds: Number.isFinite(totalTimeSeconds)
-            ? totalTimeSeconds
-            : null,
-          total_fare:
-            totalFare != null && Number.isFinite(Number(totalFare))
-              ? Number(totalFare)
-              : null,
-          map_object_id: mapObjectId,
-          raw_response: routeData,
-        });
+        const saved = await saveRouteSearchHistory(
+          placesToHistoryPayload({
+            startPlace,
+            endPlace,
+            rawResponse: routeData,
+            summary: {
+              totalTimeSeconds: Number.isFinite(totalTimeSeconds)
+                ? totalTimeSeconds
+                : null,
+              totalFare:
+                totalFare != null && Number.isFinite(Number(totalFare))
+                  ? Number(totalFare)
+                  : null,
+              mapObjectId,
+            },
+          })
+        );
+        const savedId = Number(saved?.id);
+        setShareHistoryId(Number.isFinite(savedId) ? savedId : null);
         await loadHistories();
       } catch (historyError: any) {
         console.warn("검색 기록 저장 실패:", historyError?.message);
+        setShareHistoryId(null);
       }
     } catch (error: any) {
       console.error("길찾기 중 오류 발생:", error.message);
@@ -195,29 +251,53 @@ export const RouteSearchBody = ({}: {}) => {
     }
   };
 
+  const copyToClipboard = async (text: string) => {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    const success = document.execCommand("copy");
+    document.body.removeChild(textarea);
+    if (!success) {
+      throw new Error("클립보드 복사 실패");
+    }
+  };
+
+  const handleShare = async (pathIndex: number) => {
+    if (!session?.user?.id) {
+      setIsShareLoginOpen(true);
+      return;
+    }
+
+    if (!shareHistoryId) {
+      showToast("공유할 검색 기록이 존재하지 않습니다.");
+      return;
+    }
+
+    try {
+      const { shareUrl } = await createSharedRoute({
+        searchHistoryId: shareHistoryId,
+        sharedPathIndex: pathIndex,
+      });
+      await copyToClipboard(shareUrl);
+      showToast("경로 링크 복사가 완료되었습니다.");
+    } catch (error: any) {
+      console.error("공유 링크 생성 실패:", error);
+      showToast(error?.message ?? "공유 링크 생성 실패");
+    }
+  };
+
   const applyHistory = (history: RouteSearchHistory) => {
-    const startPlace = {
-      order: 1,
-      name: history.departure_name,
-      address: history.departure_address ?? "",
-      roadAddress: history.departure_road_address ?? "",
-      category: history.departure_category ?? "",
-      telephone: history.departure_telephone ?? undefined,
-      link: history.departure_link ?? undefined,
-      lat: history.departure_latitude,
-      lng: history.departure_longitude,
-    };
-    const endPlace = {
-      order: 2,
-      name: history.destination_name,
-      address: history.destination_address ?? "",
-      roadAddress: history.destination_road_address ?? "",
-      category: history.destination_category ?? "",
-      telephone: history.destination_telephone ?? undefined,
-      link: history.destination_link ?? undefined,
-      lat: history.destination_latitude,
-      lng: history.destination_longitude,
-    };
+    setShareHistoryId(history.id);
+    const { startPlace, endPlace } = historyToPlaces(history);
 
     setAllPlaces([startPlace, endPlace]);
     setRoutePoints([startPlace, endPlace]);
@@ -226,17 +306,14 @@ export const RouteSearchBody = ({}: {}) => {
     setPaths(history.raw_response as OdsayTranspath);
   };
 
-  const handleDeleteHistory = useCallback(
-    async (id: number) => {
-      try {
-        await deleteRouteSearchHistory(id);
-        setHistories((prev) => prev.filter((history) => history.id !== id));
-      } catch (error: any) {
-        console.warn("검색 기록 삭제 실패:", error?.message);
-      }
-    },
-    []
-  );
+  const handleDeleteHistory = useCallback(async (id: number) => {
+    try {
+      await deleteRouteSearchHistory(id);
+      setHistories((prev) => prev.filter((history) => history.id !== id));
+    } catch (error: any) {
+      console.warn("검색 기록 삭제 실패:", error?.message);
+    }
+  }, []);
 
   const normalizeMapObject = (mapObj: string) => {
     const trimmed = mapObj.trim();
@@ -367,6 +444,9 @@ export const RouteSearchBody = ({}: {}) => {
                   toName={
                     places.find((p) => p.order === places.length)?.name ?? ""
                   }
+                  onShare={() => {
+                    void handleShare(index);
+                  }}
                   onClick={() => {
                     setOpenIndex(index);
                     clearRoutePolylines();
@@ -400,6 +480,22 @@ export const RouteSearchBody = ({}: {}) => {
           </>
         )}
       </div>
+
+      <TwoFunctionPopup
+        open={isShareLoginOpen}
+        onOpenChange={setIsShareLoginOpen}
+        title="로그인이 필요합니다."
+        body={
+          <p className="text-sm text-muted-foreground">
+            공유 링크를 생성하실려면 로그인이 필요합니다.
+          </p>
+        }
+        leftTitle="닫기"
+        rightTitle="로그인"
+        leftCallback={() => setIsShareLoginOpen(false)}
+        rightCallback={() => router.push("/loginpage")}
+        dialogTrigger={<span />}
+      />
     </div>
   );
 };
