@@ -33,7 +33,7 @@ export default function SlidePanel({ isopen, onclose, title, children }: slidepa
                </button>
             </div>
 
-            <div className="overflow-y-auto h-[calc(100%-4rem)] p-6 pb-24">{children}</div>
+            <div className="overflow-y-auto h-[calc(100%-4rem)] p-6">{children}</div>
          </div>
       </>
    );
