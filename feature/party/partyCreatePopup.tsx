@@ -278,6 +278,7 @@ export const PartyCreatePopup = ({ trigger, onSave, initialData }: PartyCreatePo
          className="w-150 h-[calc(100vh-40px)]"
          hideOverlay={true}
          position="top-left"
+         preventOutsideClose={true}
          open={isOpen}
          onOpenChange={open => {
             setIsOpen(open);
