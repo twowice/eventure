@@ -43,6 +43,7 @@ export const PartyCreatePopup = ({
     label2: "",
     label3: "",
     eventName: "",
+    eventId: -1,
   });
   const [tagInput, setTagInput] = useState("");
   const [isAll, setIsAll] = useState(false);
