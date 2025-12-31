@@ -52,6 +52,7 @@ export const TwoFunctionPopup = ({
    onOpenChange,
    closeOnLeft = true,
    closeOnRight = true,
+   preventOutsideClose = false,
 }: {
    className?: string;
    dialogTrigger: ReactNode; //팝업창 오픈 버튼이자 팝업창 오픈 전의 화면에 보여질 컴포넌트
@@ -67,6 +68,7 @@ export const TwoFunctionPopup = ({
    titleButton?: React.ReactNode;
    closeOnLeft?: boolean; // 편집모드일때는닫힘 방지
    closeOnRight?: boolean; // 편집모드일때는닫힘 방지
+   preventOutsideClose?: boolean; // 바깥 클릭으로 닫힘 방지
    open?: boolean;
 }): React.ReactElement => {
    return (
@@ -79,6 +81,11 @@ export const TwoFunctionPopup = ({
             )}
             hideOverlay={hideOverlay}
             position={position}
+            onInteractOutside={event => {
+               if (preventOutsideClose) {
+                  event.preventDefault();
+               }
+            }}
          >
             <DialogHeader>
                <DialogTitle>
