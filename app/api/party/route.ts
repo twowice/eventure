@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from("parties")
-      .select("*", { count: "exact" })
+      .select("*, events ( title )", { count: "exact" })
       .neq("status", "disbanded")
       .order("created_at", { ascending: false });
 

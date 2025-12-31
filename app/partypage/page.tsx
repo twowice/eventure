@@ -51,7 +51,7 @@ export default function Party() {
       date,
       time,
       hostId: party.owner_id ? String(party.owner_id) : undefined,
-      eventName: party.event_name ?? undefined,
+      eventName: party?.events?.title ?? undefined,
       label1: tags[0],
       label2: tags[1],
       label3: tags[2],
