@@ -4,7 +4,7 @@ import { TwoFunctionPopup } from "@/components/popup/twofunction";
 import Tag from "@/components/tag/tag";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { EventSearchBar } from "../event/EventSearchBar";
 
 export type PartyCreate = {
@@ -46,7 +46,6 @@ export const PartyCreatePopup = ({
     eventId: -1,
   });
   const [tagInput, setTagInput] = useState("");
-  const [isAll, setIsAll] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -81,12 +80,24 @@ export const PartyCreatePopup = ({
 
   useEffect(() => {}, [create]);
 
+  const isFormValid = Boolean(
+    create.partyName.trim() &&
+      create.eventName?.trim() &&
+      create.eventId &&
+      create.max_members &&
+      parseInt(create.max_members) >= 1 &&
+      create.location?.trim() &&
+      create.date &&
+      create.time &&
+      create.description?.trim()
+  );
+
   const handleSave = () => {
     if (!create.partyName.trim()) {
       alert("파티명을 입력해주세요.");
       return;
     }
-    if (!create.eventName?.trim()) {
+    if (!create.eventName?.trim() || !create.eventId) {
       alert("이벤트명을 입력해주세요.");
       return;
     }
@@ -289,7 +300,7 @@ export const PartyCreatePopup = ({
       rightTitle="등록"
       rightCallback={() => {
         handleSave();
-        setIsOpen(false);
+        if (isFormValid) setIsOpen(false);
       }}
       closeOnRight={false}
       className="w-150 h-[calc(100vh-40px)]"
