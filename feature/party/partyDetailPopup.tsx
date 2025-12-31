@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/contexts/ToastContext';
 import { useEffect, useState } from 'react';
+import { EventSearchBar } from '../event/EventSearchBar';
+import { PlaceSearchBar } from '../location/search/PlaceSearchBar';
 
 type PartyDetailPopupProps = {
    party: {
@@ -135,7 +137,7 @@ export const PartyDetailPopup = ({
    const PopupBody = (
       <div className="flex flex-col gap-4 flex-1 overflow-y-auto">
          {/* {isHost && ( */}
-         {!isEditMode && (
+         {!isEditMode && isHost && (
             <div className="flex w-full justify-end">
                <Button className="w-20" onClick={handleEdit}>
                   편집
@@ -196,18 +198,10 @@ export const PartyDetailPopup = ({
          {/* 이벤트명 */}
          <div className="flex flex-col gap-2">
             {isEditMode ? (
-               <>
-                  <label className="text-sm font-medium text-gray-700">
-                     이벤트명
-                     <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                     type="text"
-                     value={editedParty.eventName}
-                     onChange={e => setEditedParty({ ...editedParty, eventName: e.target.value })}
-                     placeholder={currentParty.eventName}
-                  />
-               </>
+               <EventSearchBar
+                  create={editedParty}
+                  setCreate={setEditedParty}
+               />
             ) : (
                <>
                   <label className="text-sm font-medium text-gray-700">이벤트명</label>
@@ -244,18 +238,10 @@ export const PartyDetailPopup = ({
          {/* 위치 */}
          <div className="flex flex-col gap-2">
             {isEditMode ? (
-               <>
-                  <label className="text-sm font-medium text-gray-700">
-                     위치
-                     <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                     type="text"
-                     value={editedParty.location}
-                     onChange={e => setEditedParty({ ...editedParty, location: e.target.value })}
-                     placeholder={currentParty.location}
-                  />
-               </>
+               <PlaceSearchBar
+                  create={editedParty}
+                  setCreate={setEditedParty}
+               />
             ) : (
                <>
                   <label className="text-sm font-medium text-gray-700">위치</label>
