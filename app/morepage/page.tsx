@@ -138,7 +138,7 @@ export default function MoreContent({ children }: { children?: React.ReactNode }
                         label: '알림 설정',
                         content: (
                            <div className="flex flex-col h-full">
-                              <div className="flex-1 overflow-y-auto pr-2">
+                              <div className="overflow-y-auto">
                                  <div className="flex flex-col gap-4">
                                     <div className="text-xl flex flex-col gap-3">
                                        알림 설정

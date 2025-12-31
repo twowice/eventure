@@ -1,13 +1,36 @@
 // src/components/ui/Map/MapSection.tsx
 'use client';
 import { useWeather } from '@/types/weather';
-import { NaverMap } from '@/types/maptype';
 import { getPM10Level, getPM25Level, useAirQuality } from '@/types/airquality';
 import { useWeeklyWeather } from '@/types/weeklyWeather';
 import { useState, useCallback, useRef, useEffect } from 'react';
-import WeeklyWeatherModal from '@/feature/weeklyWeatherModal';
+import WeeklyWeatherModal from '@/feature/map/weeklyWeatherModal';
 import { useMapStore } from '@/stores/map/store';
 import { panelstore } from '@/stores/panelstore';
+import { WeatherIcon } from '@/feature/map/weatherIcon';
+import { Button } from '../button';
+import { supabase } from '@/lib/clientSupabase';
+
+const REGION_NAME = {
+   all: null,
+   seoul: '서울',
+   incheon: '인천',
+   daejeon: '대전',
+   daegu: '대구',
+   gwangju: '광주',
+   busan: '부산',
+   ulsan: '울산',
+   sejong: '세종',
+   gyeonggi: '경기',
+   gangwon: '강원',
+   chungbuk: '충청북도',
+   chungnam: '충청남도',
+   gyeongbuk: '경상북도',
+   gyeongnam: '경상남도',
+   jeonbuk: '전북',
+   jeonnam: '전남',
+   jeju: '제주',
+} as const;
 
 const MapSection = () => {
    const map = useMapStore(state => state.map);
@@ -21,10 +44,13 @@ const MapSection = () => {
    const { airQuality, fetchAirQuality } = useAirQuality();
    const { weeklyWeather, fetchWeeklyWeather } = useWeeklyWeather();
    const [showWeeklyModal, setShowWeeklyModal] = useState(false);
+   const [selectedRegion, setSelectedRegion] = useState<keyof typeof REGION_CODES | null>('all');
    const [currentPosition, setCurrentPosition] = useState<{
       lat: number;
       lng: number;
    } | null>(null);
+
+   const markersRef = useRef<naver.maps.Marker[]>([]);
 
    const fetchMapData = useCallback(
       (lat: number, lng: number) => {
@@ -35,6 +61,87 @@ const MapSection = () => {
       [fetchWeather, fetchAirQuality], // fetchWeather, fetchAirQuality가 변경될 때마다 함수 재생성 (안정적)
    );
    const isListenerAddedRef = useRef(false);
+
+   useEffect(() => {
+      if (!map || !isMapScriptLoaded) return;
+
+      map.setZoom(7);
+   }, [map, isMapScriptLoaded]);
+
+   useEffect(() => {
+      if (!map || !isMapScriptLoaded) return;
+
+      map.setZoom(7);
+
+      async function loadMarkers() {
+         try {
+            // 기존 마커 모두 제거
+            markersRef.current.forEach(marker => marker.setMap(null));
+            markersRef.current = [];
+
+            // 선택 해제된 경우 마커 미표시
+            if (selectedRegion === null) {
+               console.log('필터 해제 - 마커 미표시');
+               return;
+            }
+
+            //supabase에서 이벤트 가져오기
+            let query = supabase.from('events').select('*');
+
+            //지역 필터링
+            if (selectedRegion !== 'all') {
+               const regionName = REGION_NAME[selectedRegion];
+               if (regionName) {
+                  query = query.like('address', `${regionName}%`);
+               }
+            }
+
+            const { data: events, error } = await query;
+
+            if (error) {
+               console.error('이벤트 로드 실패:', error);
+               return;
+            }
+
+            if (!events || events.length === 0) {
+               console.log('표시할 이벤트가 없습니다.');
+               return;
+            }
+
+            console.log(`${events.length}개의 이벤트 마커 표시`);
+
+            // 마커 생성
+            events.forEach((event: any) => {
+               if (!event.latitude || !event.longitude) {
+                  console.warn('좌표 없음:', event.title);
+                  return;
+               }
+
+               const marker = new naver.maps.Marker({
+                  position: new naver.maps.LatLng(event.latitude, event.longitude),
+                  map: map,
+                  title: event.title || '이벤트',
+                  icon: {
+                     url: '/marker/normal.png',
+                     scaledSize: new naver.maps.Size(12, 16),
+                     anchor: new naver.maps.Point(6, 16),
+                  },
+               });
+
+               // 마커 클릭 이벤트
+               naver.maps.Event.addListener(marker, 'click', () => {
+                  console.log('클릭된 이벤트:', event.title, event.id);
+                  //todo eventpanel 열기
+               });
+               markersRef.current.push(marker);
+            });
+         } catch (error) {
+            console.error('마커 표시 중 오류:', error);
+         }
+      }
+
+      loadMarkers();
+   }, [map, isMapScriptLoaded, selectedRegion]);
 
    useEffect(() => {
       if (!map || !isMapScriptLoaded) {
@@ -125,28 +232,167 @@ const MapSection = () => {
    const pm10Level = airQuality ? getPM10Level(airQuality.pm10) : null;
    const pm25Level = airQuality ? getPM25Level(airQuality.pm2_5) : null;
 
+   const handleRegion = (region: keyof typeof REGION_NAME) => {
+      if (selectedRegion === region) {
+         setSelectedRegion(null);
+         console.log('필터 해제');
+      } else {
+         setSelectedRegion(region);
+         console.log('선택된 지역:', region, '코드:', REGION_NAME[region]);
+      }
+   };
+
    return (
       <div className="absolute inset-0 w-full h-full pointer-events-none z-10">
+         {/* 필터 */}
+         <div className="absolute top-5 left-5 rounded-md z-20 cursor-pointer pointer-events-auto gap-2 flex">
+            <Button
+               variant={selectedRegion === 'all' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('all')}
+            >
+               전체
+            </Button>
+            <Button
+               variant={selectedRegion === 'seoul' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('seoul')}
+            >
+               서울
+            </Button>
+            <Button
+               variant={selectedRegion === 'incheon' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('incheon')}
+            >
+               인천
+            </Button>
+            <Button
+               variant={selectedRegion === 'daejeon' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('daejeon')}
+            >
+               대전
+            </Button>
+            <Button
+               variant={selectedRegion === 'daegu' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('daegu')}
+            >
+               대구
+            </Button>
+            <Button
+               variant={selectedRegion === 'gwangju' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('gwangju')}
+            >
+               광주
+            </Button>
+            <Button
+               variant={selectedRegion === 'busan' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('busan')}
+            >
+               부산
+            </Button>
+            <Button
+               variant={selectedRegion === 'ulsan' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('ulsan')}
+            >
+               울산
+            </Button>
+            <Button
+               variant={selectedRegion === 'sejong' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('sejong')}
+            >
+               세종
+            </Button>
+            <Button
+               variant={selectedRegion === 'gyeonggi' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('gyeonggi')}
+            >
+               경기
+            </Button>
+            <Button
+               variant={selectedRegion === 'gangwon' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('gangwon')}
+            >
+               강원
+            </Button>
+            <Button
+               variant={selectedRegion === 'chungbuk' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('chungbuk')}
+            >
+               충북
+            </Button>
+            <Button
+               variant={selectedRegion === 'chungnam' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('chungnam')}
+            >
+               충남
+            </Button>
+            <Button
+               variant={selectedRegion === 'gyeongbuk' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('gyeongbuk')}
+            >
+               경북
+            </Button>
+            <Button
+               variant={selectedRegion === 'gyeongnam' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('gyeongnam')}
+            >
+               경남
+            </Button>
+            <Button
+               variant={selectedRegion === 'jeonbuk' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('jeonbuk')}
+            >
+               전북
+            </Button>
+            <Button
+               variant={selectedRegion === 'jeonnam' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('jeonnam')}
+            >
+               전남
+            </Button>
+            <Button
+               variant={selectedRegion === 'jeju' ? 'default' : 'outline'}
+               className="rounded-3xl min-w-[60px]"
+               onClick={() => handleRegion('jeju')}
+            >
+               제주
+            </Button>
+         </div>
          {/* 날씨정보 */}
          {weather && (
             <div
                onClick={handleWeatherClick}
-               className="absolute bottom-5 left-5 bg-[#F1F5FA] rounded shadow-[0_2px_8px_rgba(0,0,0,0.15)] w-[150px] h-[100px] flex gap-2 items-center justify-center cursor-pointer pointer-events-auto z-20"
+               className="absolute bottom-5 left-5 bg-[#F1F5FA] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.15)] px-2 py-3 flex gap-1 items-center justify-center pointer-events-auto z-20 cursor-pointer border"
             >
-               <div className="flex items-center justify-center flex-col">
-                  <div className="w-12 h-12 border border-black">{}</div>
-                  <div className="text-base">{Math.round(weather.temperature)}°C</div>
+               <div className="flex items-center justify-center flex-col gap-2">
+                  <WeatherIcon weatherCode={weather.weathercode} className="w-8 h-8" />
+                  <div className="text-sm">{Math.round(weather.temperature)}°C</div>
                </div>
                {airQuality && pm10Level && pm25Level && (
-                  <div className="flex flex-col gap-3 w-[60px]">
+                  <div className="flex flex-col gap-3 w-12">
                      <div
-                        className="w-full flex-1 text-center text-base rounded-[3px]"
+                        className="w-full flex-1 text-center text-xs rounded-[3px]"
                         style={{ borderRight: `3px solid ${pm25Level.color}` }}
                      >
                         미세
                      </div>
                      <div
-                        className="w-full flex-1 text-center text-base rounded-[3px]"
+                        className="w-full flex-1 text-center text-xs rounded-[3px]"
                         style={{ borderRight: `3px solid ${pm25Level.color}` }}
                      >
                         초미세
@@ -156,7 +402,11 @@ const MapSection = () => {
             </div>
          )}
          {showWeeklyModal && weeklyWeather && (
-            <WeeklyWeatherModal weeklyWeather={weeklyWeather} onClose={() => setShowWeeklyModal(false)} />
+            <WeeklyWeatherModal
+               weeklyWeather={weeklyWeather}
+               onClose={() => setShowWeeklyModal(false)}
+               currentPosition={currentPosition}
+            />
          )}
       </div>
    );
