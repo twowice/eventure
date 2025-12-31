@@ -35,20 +35,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       );
    }
 
-   // 로그인/회원가입/홈 페이지는 Header 없이 전체 화면
-   if (path === "/" || path.startsWith("/loginpage") || path.startsWith("/signup") || path.startsWith("/testpage")) {
-      return (
-         <html lang="ko">
-            <body>
-               <AuthSessionProvider>
-                  <main className="w-full h-screen">
-                     {children}
-                  </main>
-               </AuthSessionProvider>
-            </body>
-         </html>
-      );
-   }
+  // 로그인/회원가입 페이지는 Header 없이 전체 화면
+  if (path.startsWith("/loginpage") || path.startsWith("/signup") || path.startsWith("/testpage")) {
+    return (
+      <html lang="ko">
+        <body>
+          <AuthSessionProvider>
+            <main className="w-full h-screen">
+              {children}
+            </main>
+          </AuthSessionProvider>
+        </body>
+      </html>
+    );
+  }
 
    return (
       <html lang="ko">
@@ -58,7 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <MapScriptLoader />
                   <Header />
                   <main className="grow flex flex-row min-h-screen relative overflow-hidden ms-16 lg:ms-20 h-full">
-                     {path.startsWith(mainmenu[0].href) && (
+                     {path !== '/' && (
                         <div
                            className={cn(
                               path.startsWith(mainmenu[0].href) ? 'w-full' : 'w-0',
